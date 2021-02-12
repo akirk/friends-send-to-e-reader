@@ -31,7 +31,7 @@ require 'vendor/autoload.php';
 function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 	$nonce_value = 'send-to-e-reader';
 	if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], $nonce_value ) ) {
-		update_option( 'send-to-e-reader_email', $_POST['email'] );
+		update_option( 'friends-send-to-e-reader_default_email', $_POST['email'] );
 	}
 
 	?><h1><?php _e( 'Friends Send to E-Reader', 'send-to-e-reader' ); ?></h1>
@@ -41,11 +41,11 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th scope="row"><?php esc_html_e( 'E-Mail Address', 'send-to-e-reader' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Default E-Mail Address', 'send-to-e-reader' ); ?></th>
 					<td>
 						<fieldset>
 							<label for="email">
-								<input name="email" type="email" id="email" value="<?php echo esc_html( get_option( 'send-to-e-reader_email' ) ); ?>"  required size="60" />
+								<input name="email" type="email" id="email" value="<?php echo esc_html( get_option( 'friends-send-to-e-reader_default_email' ) ); ?>"  required size="60" placeholder="<?php esc_html_e( 'Enter an e-mail address that will reach your e-reader', 'friends-send-to-e-reader' ); ?>" />
 							</label>
 						</fieldset>
 					</td>
@@ -102,26 +102,37 @@ function friends_send_to_e_reader_about_page_with_friends_about() {
 /**
  * Display an input field to enter the e-reader e-mail address.
  *
- * @param      Friend_User  $friend  The friend.
+ * @param      Friend_User $friend  The friend.
  */
 function friends_send_to_e_reader_edit_friend( Friend_User $friend ) {
-?>
+	?>
 <tr>
 	<th scope="row"><?php esc_html_e( 'Send to E-Reader', 'friends' ); ?></th>
-	<td><input type="email" name="friends_send_to_e_reader_email" value="<?php echo esc_html( get_user_option( 'friends_send_to_e_reader_email', $friend->ID ) ); ?>" size=60 placeholder="<?php esc_html_e( 'Leave empty for no notficiation', 'friends-send-to-e-reader' ); ?>" /><p class="description"><?php esc_html_e( 'Enter the e-mail address that will reach your e-reader (e.g. @pbsync.com).', 'friends-send-to-e-reader' ); ?></p>
+	<td><input type="email" name="friends_send_to_e_reader_email" value="<?php echo esc_html( get_user_option( 'friends_send_to_e_reader_email', $friend->ID ) ); ?>" size=60 placeholder="<?php esc_html_e( 'Leave empty for no notification', 'friends-send-to-e-reader' ); ?>" />
+		<p class="description">
+			<?php
+			echo esc_html(
+				sprintf(
+				// translators: %s is an e-mail address.
+					__( 'Enter the e-mail address that will reach your e-reader (e.g. %s).', 'friends-send-to-e-reader' ),
+					get_option( 'friends-send-to-e-reader_default_email', '@pbsync.com' )
+				)
+			);
+			?>
+			</p>
 	</td>
 </tr>
-<?php
+	<?php
 }
 
 /**
  * Save the e-reader e-mail address to a friend.
  *
- * @param      Friend_User  $friend  The friend/
+ * @param      Friend_User $friend  The friend/
  */
 function friends_send_to_e_reader_edit_friend_submit( Friend_User $friend ) {
-	if ( filter_input( INPUT_POST, 'friends_send_post_to_e_reader', FILTER_VALIDATE_EMAIL ) ) {
-		update_user_option( $friend->ID, 'friends_send_to_e_reader_email', filter_input( INPUT_POST, 'friends_send_post_to_e_reader', FILTER_SANITIZE_EMAIL ) );
+	if ( filter_input( INPUT_POST, 'friends_send_to_e_reader_email', FILTER_VALIDATE_EMAIL ) ) {
+		update_user_option( $friend->ID, 'friends_send_to_e_reader_email', filter_input( INPUT_POST, 'friends_send_to_e_reader_email', FILTER_SANITIZE_EMAIL ) );
 	} else {
 		delete_user_option( $friend->ID, 'friends_send_to_e_reader_email' );
 	}
@@ -130,7 +141,7 @@ function friends_send_to_e_reader_edit_friend_submit( Friend_User $friend ) {
 /**
  * Send a post to the E-Reader if enabled for the friend.
  *
- * @param      WP_Post  $post   The post.
+ * @param      WP_Post $post   The post.
  */
 function friends_send_to_e_reader_post_notification( WP_Post $post ) {
 	$email = get_user_option( 'friends_send_to_e_reader_email', $post->post_author );
@@ -142,9 +153,9 @@ function friends_send_to_e_reader_post_notification( WP_Post $post ) {
 /**
  * Send a post to the E-Reader reachable at the particular e-mail address.
  *
- * @param      WP_Post  $post    The post.
- * @param      string   $email   The email address.
- * @param      string   $format  The format (currently only epub supported).
+ * @param      WP_Post $post    The post.
+ * @param      string  $email   The email address.
+ * @param      string  $format  The format (currently only epub supported).
  *
  * @return     bool     Whether it was sent successfully.
  */
@@ -175,9 +186,13 @@ function friends_send_post_to_e_reader( WP_Post $post, $email, $format = 'epub' 
 
 	ob_start();
 
-	$template_loader->get_template_part( 'epub/header', null, array(
-		'title' => $post->post_title,
-	) );
+	$template_loader->get_template_part(
+		'epub/header',
+		null,
+		array(
+			'title' => $post->post_title,
+		)
+	);
 
 	echo $post->post_content;
 
@@ -185,7 +200,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email, $format = 'epub' 
 	$content = ob_get_contents();
 	ob_end_clean();
 
-	$book->addChapter( "Post", "post.html", $content, false, PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
+	$book->addChapter( 'Post', 'post.html', $content, false, PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
 	$book->finalize();
 	$book->saveBook( 'post.epub', $dir );
 	$file = $dir . '/post.epub';
@@ -201,9 +216,11 @@ function friends_send_post_to_e_reader( WP_Post $post, $email, $format = 'epub' 
 add_action(
 	'friends_entry_dropdown_menu',
 	function() {
-		?>
-		<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" class="friends-send-post-to-e-reader">Send to E-Reader</a></li>
-		<?php
+		if ( get_option( 'friends-send-to-e-reader_default_email' ) ) {
+			?>
+			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" class="friends-send-post-to-e-reader"><?php _e( 'Send to E-Reader', 'friends-send-to-e-reader' ); ?></a></li>
+			<?php
+		}
 	}
 );
 
@@ -227,7 +244,7 @@ add_action(
 				__( 'Plugin: Send to E-Reader', 'send-to-e-reader' ),
 				__( 'Plugin: Send to E-Reader', 'send-to-e-reader' ),
 				'administrator',
-				'friends-rss-bridge',
+				'friends-send-to-e-reader',
 				'friends_send_to_e_reader_about_page'
 			);
 		} else {
@@ -248,7 +265,7 @@ add_action(
 add_action(
 	'wp_ajax_send-post-to-e-reader',
 	function() {
-		$result = friends_send_post_to_e_reader( get_post( $_POST['id'] ), 'pocketbook101@pbsync.com' );
+		$result = friends_send_post_to_e_reader( get_post( $_POST['id'] ), get_option( 'friends-send-to-e-reader_default_email' ) );
 		if ( ! $result ) {
 			wp_send_json_error( 'error' );
 		}
