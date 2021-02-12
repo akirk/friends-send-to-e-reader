@@ -1,0 +1,5 @@
+{
+    "require": {
+        "grandt/phpepub": "4.0.7.1"
+    }
+}
