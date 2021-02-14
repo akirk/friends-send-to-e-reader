@@ -144,6 +144,10 @@ function friends_send_to_e_reader_edit_friend_submit( Friend_User $friend ) {
  * @param      WP_Post $post   The post.
  */
 function friends_send_to_e_reader_post_notification( WP_Post $post ) {
+	if ( 'trash' === $post->post_status ) {
+		return;
+	}
+
 	$email = get_user_option( 'friends_send_to_e_reader_email', $post->post_author );
 	if ( $email ) {
 		friends_send_post_to_e_reader( $post, $email );
@@ -172,6 +176,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email, $format = 'epub' 
 		mkdir( $dir );
 	}
 
+	$filename = sanitize_title_with_dashes( $post->post_title );
 	$author = new WP_User( $post->post_author );
 
 	$book = new PHPePub\Core\EPub();
@@ -196,14 +201,20 @@ function friends_send_post_to_e_reader( WP_Post $post, $email, $format = 'epub' 
 
 	echo $post->post_content;
 
-	$template_loader->get_template_part( 'epub/footer' );
+	$template_loader->get_template_part(
+		'epub/footer',
+		null,
+		array(
+			'url' => $post->permalink,
+		)
+	);
 	$content = ob_get_contents();
 	ob_end_clean();
 
-	$book->addChapter( 'Post', 'post.html', $content, false, PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
+	$book->addChapter( $post->post_title, $filename . '.html', $content, false, PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
 	$book->finalize();
-	$book->saveBook( 'post.epub', $dir );
-	$file = $dir . '/post.epub';
+	$book->saveBook( $filename . '.epub', $dir );
+	$file = $dir . '/' . $filename . '.epub';
 
 	$friends = Friends::get_instance();
 	$friends->notifications->send_mail( $email, $post->post_title, $post->post_title, array(), array( $file ) );
