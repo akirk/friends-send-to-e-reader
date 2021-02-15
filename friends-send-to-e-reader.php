@@ -3,7 +3,7 @@
  * Plugin name: Friends Send to E-Reader
  * Plugin author: Alex Kirk
  * Plugin URI: https://github.com/akirk/friends-send-to-e-reader
- * Version: 0.1
+ * Version: 0.2
  *
  * Description: Send friend posts to your e-reader.
  *
@@ -29,6 +29,7 @@ require 'vendor/autoload.php';
  * @param      bool $display_about_friends  The display about friends section.
  */
 function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
+	$friends = Friends::get_instance();
 	$nonce_value = 'send-to-e-reader';
 	if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], $nonce_value ) ) {
 		update_option( 'friends-send-to-e-reader_default_email', $_POST['email'] );
@@ -48,6 +49,36 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 								<input name="email" type="email" id="email" value="<?php echo esc_html( get_option( 'friends-send-to-e-reader_default_email' ) ); ?>"  required size="60" placeholder="<?php esc_html_e( 'Enter an e-mail address that will reach your e-reader', 'friends-send-to-e-reader' ); ?>" />
 							</label>
 						</fieldset>
+						<p class="description">
+							<?php
+							echo __( 'Some E-Readers offer wireless delivery via an e-mail address which you\'ll first need to create.', 'friends-send-to-e-reader' );
+							echo ' ';
+							echo wp_kses(
+								sprintf(
+									// translators: %1$s and %2$s are URLs.
+									__( 'Examples include Kindle (@free.kindle.com, <a href="%1$s">Instructions</a>) or Pocketbook (@pbsync.com, <a href="%2$s">Instructions</a>).', 'friends-send-to-e-reader' ),
+									'https://help.fivefilters.org/push-to-kindle/email-address.html" target="_blank" rel="noopener noreferrer',
+									'https://sync.pocketbook-int.com/files/s2pb_info_en.pdf" target="_blank" rel="noopener noreferrer'
+								),
+								array(
+									'a' => array(
+										'href'   => array(),
+										'rel'    => array(),
+										'target' => array(),
+									),
+								)
+							);
+							echo ' ';
+
+							echo esc_html(
+								sprintf(
+									__( 'Make sure that you whitelist the e-mail address which the friend plugin sends its e-mails from: %s', 'friends-send-to-e-reader' ),
+									$friends->notifications->get_friends_plugin_from_email_address()
+								)
+							);
+
+							?>
+							</p>
 					</td>
 				</tr>
 			</tbody>
@@ -159,38 +190,16 @@ function friends_send_to_e_reader_post_notification( WP_Post $post ) {
  *
  * @param      WP_Post $post    The post.
  * @param      string  $email   The email address.
- * @param      string  $format  The format (currently only epub supported).
  *
  * @return     bool     Whether it was sent successfully.
  */
-function friends_send_post_to_e_reader( WP_Post $post, $email, $format = 'epub' ) {
+function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 	require_once __DIR__ . '/class.friends-send-to-e-reader-template-loader.php';
 	$template_loader = new Friends_Send_To_E_Reader_Template_Loader();
 
-	if ( 'epub' !== $format ) {
-		return;
-	}
-
-	$dir = rtrim( sys_get_temp_dir(), '/' ) . '/friends_send_to_e_reader';
-	if ( ! file_exists( $dir ) ) {
-		mkdir( $dir );
-	}
-
-	$filename = sanitize_title_with_dashes( $post->post_title );
-	$author = new WP_User( $post->post_author );
-
-	$book = new PHPePub\Core\EPub();
-
-	$book->setTitle( $post->post_title );
-	$book->setIdentifier( $post->permalink, PHPePub\Core\EPub::IDENTIFIER_URI );
-	$book->setAuthor( $author->display_name, $author->display_name );
-
-	$book->setSourceURL( $post->permalink );
-
-	$book->addCSSFile( 'style.css', 'css', file_get_contents( $template_loader->get_template_part( 'epub/style', null, array(), false ) ) );
+	$author = new Friend_User( $post->post_author );
 
 	ob_start();
-
 	$template_loader->get_template_part(
 		'epub/header',
 		null,
@@ -211,15 +220,58 @@ function friends_send_post_to_e_reader( WP_Post $post, $email, $format = 'epub' 
 	$content = ob_get_contents();
 	ob_end_clean();
 
-	$book->addChapter( $post->post_title, $filename . '.html', $content, false, PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
-	$book->finalize();
-	$book->saveBook( $filename . '.epub', $dir );
-	$file = $dir . '/' . $filename . '.epub';
+	$dir = rtrim( sys_get_temp_dir(), '/' ) . '/friends_send_to_e_reader';
+	if ( ! file_exists( $dir ) ) {
+		mkdir( $dir );
+	}
+
+	$filename = sanitize_title( $post->post_title );
+
+	$format = 'epub';
+	if ( preg_match( '/@(free\.)?kindle.com$/', $email ) ) {
+		$format = 'mobi';
+	}
+
+	if ( 'epub' === $format ) {
+		$book = new PHPePub\Core\EPub();
+
+		$book->setTitle( $post->post_title );
+		$book->setIdentifier( $post->permalink, PHPePub\Core\EPub::IDENTIFIER_URI );
+		$book->setAuthor( $author->display_name, $author->display_name );
+
+		$book->setSourceURL( $post->permalink );
+
+		$book->addCSSFile( 'style.css', 'css', file_get_contents( $template_loader->get_template_part( 'epub/style', null, array(), false ) ) );
+
+		$book->addChapter( $post->post_title, $filename . '.html', $content, false, PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
+		$book->finalize();
+		$book->saveBook( $filename . '.epub', $dir );
+		$file = $dir . '/' . $filename . '.epub';
+	} elseif ( 'mobi' === $format ) {
+		require_once __DIR__ . '/MOBIClass/MOBI.php';
+		$mobi = new MOBI();
+
+		$mobi_content = new OnlineArticle( $post->permalink, $content );
+
+		$mobi_content->setMetadata( 'title', $post->post_title );
+		$mobi_content->setMetadata( 'author', $author->display_name );
+		$mobi_content->setMetadata( 'publishingdate', date( 'd-m-Y' ) );
+
+		$mobi_content->setMetadata( 'source', $post->permalink );
+		$mobi_content->setMetadata( 'publisher', get_bloginfo( 'name' ), get_bloginfo( 'url' ) );
+
+		$mobi->setContentProvider( $mobi_content );
+
+		$file = $dir . '/' . $filename . '.mobi';
+		$mobi->save( $file );
+	} else {
+		return;
+	}
 
 	$friends = Friends::get_instance();
 	$friends->notifications->send_mail( $email, $post->post_title, $post->post_title, array(), array( $file ) );
 
-	unlink( $file );
+	// unlink( $file );
 
 	return true;
 }
