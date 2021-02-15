@@ -3,7 +3,7 @@
  * Plugin name: Friends Send to E-Reader
  * Plugin author: Alex Kirk
  * Plugin URI: https://github.com/akirk/friends-send-to-e-reader
- * Version: 0.2
+ * Version: 0.2.1
  *
  * Description: Send friend posts to your e-reader.
  *
@@ -198,6 +198,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 	$template_loader = new Friends_Send_To_E_Reader_Template_Loader();
 
 	$author = new Friend_User( $post->post_author );
+	$url = get_permalink( $post );
 
 	ob_start();
 	$template_loader->get_template_part(
@@ -214,7 +215,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 		'epub/footer',
 		null,
 		array(
-			'url' => $post->permalink,
+			'url' => $url,
 		)
 	);
 	$content = ob_get_contents();
@@ -236,10 +237,10 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 		$book = new PHPePub\Core\EPub();
 
 		$book->setTitle( $post->post_title );
-		$book->setIdentifier( $post->permalink, PHPePub\Core\EPub::IDENTIFIER_URI );
+		$book->setIdentifier( $url, PHPePub\Core\EPub::IDENTIFIER_URI );
 		$book->setAuthor( $author->display_name, $author->display_name );
 
-		$book->setSourceURL( $post->permalink );
+		$book->setSourceURL( $url );
 
 		$book->addCSSFile( 'style.css', 'css', file_get_contents( $template_loader->get_template_part( 'epub/style', null, array(), false ) ) );
 
@@ -251,13 +252,13 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 		require_once __DIR__ . '/MOBIClass/MOBI.php';
 		$mobi = new MOBI();
 
-		$mobi_content = new OnlineArticle( $post->permalink, $content );
+		$mobi_content = new OnlineArticle( $url, $content );
 
 		$mobi_content->setMetadata( 'title', $post->post_title );
 		$mobi_content->setMetadata( 'author', $author->display_name );
 		$mobi_content->setMetadata( 'publishingdate', date( 'd-m-Y' ) );
 
-		$mobi_content->setMetadata( 'source', $post->permalink );
+		$mobi_content->setMetadata( 'source', $url );
 		$mobi_content->setMetadata( 'publisher', get_bloginfo( 'name' ), get_bloginfo( 'url' ) );
 
 		$mobi->setContentProvider( $mobi_content );
@@ -271,7 +272,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 	$friends = Friends::get_instance();
 	$friends->notifications->send_mail( $email, $post->post_title, $post->post_title, array(), array( $file ) );
 
-	// unlink( $file );
+	unlink( $file );
 
 	return true;
 }
