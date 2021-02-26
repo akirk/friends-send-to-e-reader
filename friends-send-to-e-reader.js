@@ -11,4 +11,16 @@ jQuery( function( $ ) {
 		} );
 		return false;
 	} );
+
+	$document.on( 'click', 'a#add-reader', function() {
+		$( 'tr.template' ).removeClass( 'hidden' ).find( 'input:visible:first' ).focus();
+		$( this ).remove();
+		return false;
+	} );
+
+	$document.on( 'click', 'a.delete-reader', function() {
+		$( this ).closest('tr').html( '<td colspan=2>' + $( this ).data( 'delete-text' ) );
+		return false;
+	} );
+
 } );
