@@ -51,6 +51,10 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 				}
 			}
 		}
+		usort( $ereaders, function( $a, $b ) {
+			return strcmp( $a['name'], $b['name'] );
+		} );
+
 		update_option( 'friends-send-to-e-reader_readers', $ereaders );
 	}
 
@@ -87,7 +91,7 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 							</tbody>
 						</table>
 						<?php if ( ! empty( $ereaders ) ) : ?>
-							<a href="" class="add-reader"><?php _e( 'Add another E-Reader', 'friends' ); ?></a>
+							<a href="" id="add-reader"><?php _e( 'Add another E-Reader', 'friends' ); ?></a>
 						<?php endif; ?>
 						<p class="description">
 							<?php
