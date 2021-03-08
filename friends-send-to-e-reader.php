@@ -8,8 +8,7 @@
  * Description: Send friend posts to your e-reader.
  *
  * License: GPL2
- * Text Domain: friends-send-to-e-reader
- * Domain Path: /languages/
+ * Text Domain: friends
  *
  * @package Friends_Send_To_E_Reader
  */
@@ -51,21 +50,25 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 				}
 			}
 		}
-		usort( $ereaders, function( $a, $b ) {
-			return strcmp( $a['name'], $b['name'] );
-		} );
+		usort(
+			$ereaders,
+			function( $a, $b ) {
+				return strcmp( $a['name'], $b['name'] );
+			}
+		);
 
 		update_option( 'friends-send-to-e-reader_readers', $ereaders );
 	}
+	$save_changes = __( 'Save Changes', 'friends' );
 
-	?><h1><?php _e( 'Friends Send to E-Reader', 'friends-send-to-e-reader' ); ?></h1>
+	?><h1><?php _e( 'Friends Send to E-Reader', 'friends' ); ?></h1>
 
 	<form method="post">
 		<?php wp_nonce_field( $nonce_value ); ?>
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th scope="row"><?php esc_html_e( 'Your E-Readers', 'friends-send-to-e-reader' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Your E-Readers', 'friends' ); ?></th>
 					<td>
 						<table class="reader-table">
 							<thead>
@@ -81,7 +84,19 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 								<tr>
 									<td><input type="text" class="name" name="ereaders[<?php echo esc_attr( $id ); ?>][name]" value="<?php echo esc_attr( $ereader['name'] ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader Name', 'friends' ); ?>" /></td>
 									<td><input type="text" class="email" name="ereaders[<?php echo esc_attr( $id ); ?>][email]" value="<?php echo esc_attr( $ereader['email'] ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader E-Mail address', 'friends' ); ?>" placeholder="<?php _e( 'E-Reader E-Mail address', 'friends' ); ?>"/></td>
-									<td><a href="" class="delete-reader" data-delete-text="<?php echo wp_kses( sprintf( __( 'Click %1$s to really delete the reader %2$s.', 'friends' ), '<em>' . __( 'Save Changes', 'friends-send-to-e-reader' ) . '</em>', '<em>' . esc_html( $ereader['name'] ) ) . '</em>', array( 'em' => array() ) ); ?>"><?php _e( 'delete' ); ?></a></td>
+									<td><a href="" class="delete-reader" data-delete-text="
+									<?php
+									echo wp_kses(
+										sprintf(
+										// translators: %1$s is the button named "delete", %2$s is the user given name of an e-reader.
+											__( 'Click %1$s to really delete the reader %2$s.', 'friends' ),
+											'<em>' . esc_html( $save_changes ) . '</em>',
+											'<em>' . esc_html( $ereader['name'] )
+										) . '</em>',
+										array( 'em' => array() )
+									);
+									?>
+										"><?php _e( 'delete' ); ?></a></td>
 								</tr>
 							<?php endforeach; ?>
 							<tr class="template<?php echo empty( $ereaders ) ? '' : ' hidden'; ?>">
@@ -95,7 +110,7 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 						<?php endif; ?>
 						<p class="description">
 							<?php
-							echo __( 'Some E-Readers offer wireless delivery via an e-mail address which you\'ll first need to create.', 'friends-send-to-e-reader' );
+							echo __( 'Some E-Readers offer wireless delivery via an e-mail address which you\'ll first need to create.', 'friends' );
 							?>
 						</p>
 						<p class="description">
@@ -103,7 +118,7 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 							echo wp_kses(
 								sprintf(
 									// translators: %1$s and %2$s are URLs.
-									__( 'Examples include Kindle (@free.kindle.com, <a href="%1$s">Instructions</a>) or Pocketbook (@pbsync.com, <a href="%2$s">Instructions</a>).', 'friends-send-to-e-reader' ),
+									__( 'Examples include Kindle (@free.kindle.com, <a href="%1$s">Instructions</a>) or Pocketbook (@pbsync.com, <a href="%2$s">Instructions</a>).', 'friends' ),
 									'https://help.fivefilters.org/push-to-kindle/email-address.html" target="_blank" rel="noopener noreferrer',
 									'https://sync.pocketbook-int.com/files/s2pb_info_en.pdf" target="_blank" rel="noopener noreferrer'
 								),
@@ -119,7 +134,8 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 
 							echo esc_html(
 								sprintf(
-									__( 'Make sure that you whitelist the e-mail address which the friend plugin sends its e-mails from: %s', 'friends-send-to-e-reader' ),
+									// translators: %s is an e-mail address.
+									__( 'Make sure that you whitelist the e-mail address which the friend plugin sends its e-mails from: %s', 'friends' ),
 									$friends->notifications->get_friends_plugin_from_email_address()
 								)
 							);
@@ -128,9 +144,9 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 						</p>
 						<p class="description">
 							<?php
-							esc_html_e( 'Theoretically you can enter any e-mail address.', 'friends-send-to-e-reader' );
+							esc_html_e( 'Theoretically you can enter any e-mail address.', 'friends' );
 							echo ' ';
-							esc_html_e( 'By default the plugin will send an e-mail with an ePub file attached.', 'friends-send-to-e-reader' );
+							esc_html_e( 'By default the plugin will send an e-mail with an ePub file attached.', 'friends' );
 							?>
 							</p>
 					</td>
@@ -138,7 +154,7 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 			</tbody>
 		</table>
 		<p class="submit">
-			<input type="submit" id="submit" class="button button-primary" value="<?php esc_html_e( 'Save Changes', 'friends-send-to-e-reader' ); ?>">
+			<input type="submit" id="submit" class="button button-primary" value="<?php echo esc_html( $save_changes ); ?>">
 		</p>
 	</form>
 
@@ -147,7 +163,7 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 			<?php
 			echo wp_kses(
 				// translators: %s: URL to the Friends Plugin page on WordPress.org.
-				sprintf( __( 'The Friends plugin is all about connecting with friends and news. Learn more on its <a href=%s>plugin page on WordPress.org</a>.', 'friends-send-to-e-reader' ), '"https://wordpress.org/plugins/friends" target="_blank" rel="noopener noreferrer"' ),
+				sprintf( __( 'The Friends plugin is all about connecting with friends and news. Learn more on its <a href=%s>plugin page on WordPress.org</a>.', 'friends' ), '"https://wordpress.org/plugins/friends" target="_blank" rel="noopener noreferrer"' ),
 				array(
 					'a' => array(
 						'href'   => array(),
@@ -163,7 +179,7 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 	<?php
 	echo wp_kses(
 		// translators: %s: URL to the Embed library.
-		sprintf( __( 'This plugin is largely powered by the open source project <a href=%s>PHPePub</a>.', 'friends-send-to-e-reader' ), '"https://github.com/Grandt/PHPePub" target="_blank" rel="noopener noreferrer"' ),
+		sprintf( __( 'This plugin is largely powered by the open source project <a href=%s>PHPePub</a>.', 'friends' ), '"https://github.com/Grandt/PHPePub" target="_blank" rel="noopener noreferrer"' ),
 		array(
 			'a' => array(
 				'href'   => array(),
@@ -198,7 +214,7 @@ function friends_send_to_e_reader_edit_friend( Friend_User $friend ) {
 	<td>
 		<?php if ( ! empty( $ereaders ) ) : ?>
 		<select name="send-to-e-reader">
-			<option value="none"><?php esc_html_e( "Don't send a notification", 'friends-send-to-e-reader' ); ?></option>
+			<option value="none"><?php esc_html_e( "Don't send a notification", 'friends' ); ?></option>
 			<?php foreach ( $ereaders as $id => $ereader ) : ?>
 			<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $selected, $id ); ?>><?php echo esc_html( $ereader['name'] ); ?></option>
 		<?php endforeach; ?>
@@ -211,7 +227,7 @@ function friends_send_to_e_reader_edit_friend( Friend_User $friend ) {
 				echo wp_kses(
 					sprintf(
 						// translators: %s is an URL.
-						__( 'You have not yet entered any e-readers. Go to the <a href=%s>Send to E-Reader settings</a> to add one.', 'friends-send-to-e-reader_readers' ),
+						__( 'You have not yet entered any e-readers. Go to the <a href=%s>Send to E-Reader settings</a> to add one.', 'friends' ),
 						'"' . self_admin_url( 'admin.php?page=friends-send-to-e-reader' ) . '"'
 					),
 					array( 'a' => array( 'href' => array() ) )
@@ -259,7 +275,7 @@ function friends_send_to_e_reader_post_notification( WP_Post $post ) {
 /**
  * Strip Emojis from text
  *
- * @param      string  $text   The text.
+ * @param      string $text   The text.
  *
  * @return     string  The text stripped off emojis.
  */
@@ -300,15 +316,25 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 	$template_loader = new Friends_Send_To_E_Reader_Template_Loader();
 
 	$author = new Friend_User( $post->post_author );
+	$author_name = $author->display_name;
+	$override_author_name = get_post_meta( $post->ID, 'author', true );
+	if ( $override_author_name && trim( str_replace( $override_author_name, '', $author_name ) ) === $author_name ) {
+		$author_name .= ' – ' . $override_author_name;
+	}
 	$url = get_permalink( $post );
+
+	$format = 'epub';
+	if ( preg_match( '/@(free\.)?kindle.com$/', $email ) ) {
+		$format = 'mobi';
+	}
 
 	ob_start();
 	$template_loader->get_template_part(
-		'epub/header',
+		$format . '/header',
 		null,
 		array(
 			'title'  => $post->post_title,
-			'author' => $author->display_name,
+			'author' => $author_name,
 			'date'   => get_the_time( 'l, F j, Y', $post ),
 		)
 	);
@@ -316,7 +342,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 	echo $post->post_content;
 
 	$template_loader->get_template_part(
-		'epub/footer',
+		$format . '/footer',
 		null,
 		array(
 			'url' => $url,
@@ -330,19 +356,14 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 		mkdir( $dir );
 	}
 
-	$filename = sanitize_title( friends_send_to_e_reader_strip_emojis( $author->display_name . ' - ' . $post->post_title ) );
-
-	$format = 'epub';
-	if ( preg_match( '/@(free\.)?kindle.com$/', $email ) ) {
-		$format = 'mobi';
-	}
+	$filename = sanitize_title( friends_send_to_e_reader_strip_emojis( $author_name . ' - ' . $post->post_title ) );
 
 	if ( 'epub' === $format ) {
 		$book = new PHPePub\Core\EPub();
 
 		$book->setTitle( friends_send_to_e_reader_strip_emojis( $post->post_title ) );
 		$book->setIdentifier( $url, PHPePub\Core\EPub::IDENTIFIER_URI );
-		$book->setAuthor( $author->display_name, $author->display_name );
+		$book->setAuthor( $author_name, $author_name );
 
 		$book->setSourceURL( $url );
 
@@ -359,7 +380,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 		$mobi_content = new OnlineArticle( $url, $content );
 
 		$mobi_content->setMetadata( 'title', friends_send_to_e_reader_strip_emojis( $post->post_title ) );
-		$mobi_content->setMetadata( 'author', $author->display_name );
+		$mobi_content->setMetadata( 'author', $author_name );
 		$mobi_content->setMetadata( 'publishingdate', date( 'd-m-Y' ) );
 
 		$mobi_content->setMetadata( 'source', $url );
@@ -386,7 +407,17 @@ add_action(
 	function() {
 		foreach ( get_option( 'friends-send-to-e-reader_readers', array() ) as $id => $ereader ) {
 			?>
-			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader"><?php echo esc_html( sprintf( __( 'Send to %s', 'friends-send-to-e-reader' ), $ereader['name'] ) ); ?></a></li>
+			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader">
+																  <?php
+																	echo esc_html(
+																		sprintf(
+																		// translators: %s is an E-Reader name.
+																			__( 'Send to %s', 'friends' ),
+																			$ereader['name']
+																		)
+																	);
+																	?>
+				</a></li>
 			<?php
 		}
 	}
@@ -423,18 +454,18 @@ add_action(
 		if ( $friends_settings_exist ) {
 			add_submenu_page(
 				'friends-settings',
-				__( 'Send to E-Reader', 'friends-send-to-e-reader' ),
-				__( 'Send to E-Reader', 'friends-send-to-e-reader' ),
+				__( 'Send to E-Reader', 'friends' ),
+				__( 'Send to E-Reader', 'friends' ),
 				'administrator',
 				'friends-send-to-e-reader',
 				'friends_send_to_e_reader_about_page'
 			);
 		} else {
-			add_menu_page( 'friends', __( 'Friends', 'friends-send-to-e-reader' ), 'administrator', 'friends-send-to-e-reader', null, 'dashicons-groups', 3.73 );
+			add_menu_page( 'friends', __( 'Friends', 'friends' ), 'administrator', 'friends-send-to-e-reader', null, 'dashicons-groups', 3.73 );
 			add_submenu_page(
 				'friends-send-to-e-reader',
-				__( 'About', 'friends-send-to-e-reader' ),
-				__( 'About', 'friends-send-to-e-reader' ),
+				__( 'About', 'friends' ),
+				__( 'About', 'friends' ),
 				'administrator',
 				'friends-send-to-e-reader',
 				'friends_send_to_e_reader_about_page_with_friends_about'
