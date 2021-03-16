@@ -4,11 +4,22 @@ jQuery( function( $ ) {
 	wp = wp || {};
 	$document.on( 'click', 'a.friends-send-post-to-e-reader', function() {
 		var $this = $(this);
-		wp.ajax.post( 'send-post-to-e-reader', {
-			id: $this.data( 'id' ),
-			ereader: $this.data( 'ereader' )
-		}).done( function( response ) {
-			alert( response );
+		var search_indicator = $this.find( 'i' );
+		if ( search_indicator.hasClass( 'loading' ) ) {
+			return;
+		}
+
+		wp.ajax.send( 'send-post-to-e-reader', {
+			data: {
+				id: $this.data( 'id' ),
+				ereader: $this.data( 'ereader' )
+			},
+			beforeSend: function() {
+				search_indicator.addClass( 'form-icon loading' );
+			},
+			success: function( response ) {
+				search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-saved' );
+			}
 		} );
 		return false;
 	} );

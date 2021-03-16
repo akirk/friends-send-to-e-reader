@@ -407,17 +407,17 @@ add_action(
 	function() {
 		foreach ( get_option( 'friends-send-to-e-reader_readers', array() ) as $id => $ereader ) {
 			?>
-			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader">
-																  <?php
-																	echo esc_html(
-																		sprintf(
-																		// translators: %s is an E-Reader name.
-																			__( 'Send to %s', 'friends' ),
-																			$ereader['name']
-																		)
-																	);
-																	?>
-				</a></li>
+			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader has-icon-right">
+				  <?php
+					echo esc_html(
+						sprintf(
+						// translators: %s is an E-Reader name.
+							__( 'Send to %s', 'friends' ),
+							$ereader['name']
+						)
+					);
+					?>
+				<i class="form-icon icon-people"></i></a></li>
 			<?php
 		}
 	}
