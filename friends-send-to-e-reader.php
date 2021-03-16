@@ -412,12 +412,12 @@ add_action(
 					echo esc_html(
 						sprintf(
 						// translators: %s is an E-Reader name.
-							__( 'Send to %s', 'friends' ),
+							_x( 'Send to %s', 'e-reader', 'friends' ),
 							$ereader['name']
 						)
 					);
 					?>
-				<i class="form-icon icon-people"></i></a></li>
+				<i class="form-icon"></i></a></li>
 			<?php
 		}
 	}

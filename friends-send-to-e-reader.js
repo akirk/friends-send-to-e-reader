@@ -17,7 +17,7 @@ jQuery( function( $ ) {
 			beforeSend: function() {
 				search_indicator.addClass( 'form-icon loading' );
 			},
-			success: function( response ) {
+			success: function() {
 				search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-saved' );
 			}
 		} );
