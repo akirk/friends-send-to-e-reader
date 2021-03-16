@@ -405,7 +405,10 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 add_action(
 	'friends_entry_dropdown_menu',
 	function() {
+		$divider = '<li class="divider" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
 		foreach ( get_option( 'friends-send-to-e-reader_readers', array() ) as $id => $ereader ) {
+			echo $divider;
+			$divider = '';
 			?>
 			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader has-icon-right">
 				  <?php
