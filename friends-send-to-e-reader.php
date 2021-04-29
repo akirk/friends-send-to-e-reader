@@ -210,7 +210,7 @@ function friends_send_to_e_reader_edit_friend( Friend_User $friend ) {
 	$selected = get_user_option( 'friends_send_to_e_reader', $friend->ID );
 	?>
 <tr>
-	<th scope="row"><?php esc_html_e( 'Send to E-Reader', 'friends' ); ?></th>
+	<th scope="row"><?php esc_html_e( 'Send to new posts to E-Reader', 'friends' ); ?></th>
 	<td>
 		<?php if ( ! empty( $ereaders ) ) : ?>
 		<select name="send-to-e-reader">
@@ -401,6 +401,40 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 
 	return true;
 }
+
+add_action(
+	'friends_notification_manager_header',
+	function() {
+		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
+		if ( empty( $ereaders ) ) {
+			return;
+		}
+		?>
+			<th class="column-send-to-e-reader"><?php esc_html_e( 'Send to E-Reader' ); ?></th>
+		<?php
+	}
+);
+
+add_action(
+	'friends_notification_manager_row',
+	function( $friend ) {
+		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
+		if ( empty( $ereaders ) ) {
+			return;
+		}
+		$selected = get_user_option( 'friends_send_to_e_reader', $friend->ID );
+		?>
+		<td class="column-send-to-e-reader">
+			<select name="send-to-e-reader">
+				<option value="none">-</option>
+				<?php foreach ( $ereaders as $id => $ereader ) : ?>
+					<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $selected, $id ); ?>><?php echo esc_html( $ereader['name'] ); ?></option>
+				<?php endforeach; ?>
+			</select>
+		</td>
+		<?php
+	}
+);
 
 add_action(
 	'friends_entry_dropdown_menu',
