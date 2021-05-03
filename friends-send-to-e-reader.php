@@ -425,7 +425,7 @@ add_action(
 		$selected = get_user_option( 'friends_send_to_e_reader', $friend->ID );
 		?>
 		<td class="column-send-to-e-reader">
-			<select name="send-to-e-reader">
+			<select name="send-to-e-reader[<?php echo esc_attr( $friend->ID ); ?>]">
 				<option value="none">-</option>
 				<?php foreach ( $ereaders as $id => $ereader ) : ?>
 					<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $selected, $id ); ?>><?php echo esc_html( $ereader['name'] ); ?></option>
@@ -433,6 +433,27 @@ add_action(
 			</select>
 		</td>
 		<?php
+	}
+);
+
+add_action(
+	'friends_notification_manager_after_form_submit',
+	function( $friend_ids ) {
+		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
+		if ( empty( $ereaders ) ) {
+			return;
+		}
+
+		foreach ( $friend_ids as $friend_id ) {
+			if ( ! isset( $_POST['send-to-e-reader'][ $friend_id ] ) ) {
+				continue;
+			}
+
+			$ereader_notification = $_POST['send-to-e-reader'][ $friend_id ];
+			if ( get_user_option( 'friends_send_to_e_reader', $friend_id ) !== $ereader_notification ) {
+				update_user_option( $friend_id, 'friends_send_to_e_reader', $ereader_notification );
+			}
+		}
 	}
 );
 
