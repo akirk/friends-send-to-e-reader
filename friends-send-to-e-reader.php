@@ -317,7 +317,7 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 
 	$author = new Friend_User( $post->post_author );
 	$author_name = $author->display_name;
-	$override_author_name = get_post_meta( $post->ID, 'author', true );
+	$override_author_name = apply_filters( 'friends_override_author_name', '', $author->display_name, $post->ID );
 	if ( $override_author_name && trim( str_replace( $override_author_name, '', $author_name ) ) === $author_name ) {
 		$author_name .= ' – ' . $override_author_name;
 	}
