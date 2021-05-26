@@ -144,15 +144,12 @@ class EPubChapterSplitter {
                     if ($domDepth > 0) {
                         reset($domPath);
                         reset($domClonedPath);
-                        $oneDomClonedPath = each($domClonedPath);
-                        while ($oneDomClonedPath) {
-                            /** @noinspection PhpUnusedLocalVariableInspection */
-                            list($k, $v) = $oneDomClonedPath;
-                            /** @var $v \DOMNode */
+
+                        /** @var $v \DOMNode */
+                        foreach ($domClonedPath as $v) {
                             $newParent = $v->cloneNode(false);
                             $curParent->appendChild($newParent);
                             $curParent = $newParent;
-                            $oneDomClonedPath = each($domClonedPath);
                         }
                     }
                     $curSize = strlen($xmlDoc->saveXML($curFile));

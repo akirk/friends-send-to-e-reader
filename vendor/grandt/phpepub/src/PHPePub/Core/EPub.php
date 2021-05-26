@@ -284,10 +284,7 @@ class EPub {
             $partCount = 0;
             $this->chapterCount++;
 
-            $oneChapter = each($chapter);
-            while ($oneChapter) {
-                /** @noinspection PhpUnusedLocalVariableInspection */
-                list($k, $v) = $oneChapter;
+            foreach ($chapter as $v) {
                 if ($this->encodeHTML === true) {
                     $v = StringHelper::encodeHtml($v);
                 }
@@ -301,8 +298,6 @@ class EPub {
                 $this->extractIdAttributes($partName, $v);
 
                 $this->opf->addItemRef($partName);
-
-                $oneChapter = each($chapter);
             }
             $partName = $name . "_1." . $extension;
             $navPoint = new NavPoint(StringHelper::decodeHtmlEntities($chapterName), $partName, $partName);
@@ -2058,7 +2053,14 @@ class EPub {
         }
 
         reset($this->ncx->chapterList);
-        list($firstChapterName, $firstChapterNavPoint) = each($this->ncx->chapterList);
+
+
+
+        // list($firstChapterName, $firstChapterNavPoint) = each($this->ncx->chapterList);
+        foreach ($this->ncx->chapterList as $firstChapterName => $firstChapterNavPoint) {
+            break;
+        }
+
         /** @var $firstChapterNavPoint NavPoint */
         $firstChapterFileName = $firstChapterNavPoint->getContentSrc();
         $this->opf->addReference(Reference::TEXT, StringHelper::decodeHtmlEntities($firstChapterName), $firstChapterFileName);
@@ -2156,9 +2158,13 @@ class EPub {
         }
         $tocData .= ">\n";
 
-        while (list($item, $descriptive) = each($this->referencesOrder)) {
+
+            
+        // while (list($item, $descriptive) = each($this->referencesOrder)) {
+        foreach ($this->referencesOrder as $item => $descriptive) {
             if ($item === "text") {
-                while (list($chapterName, $navPoint) = each($this->ncx->chapterList)) {
+                foreach ($this->ncx->chapterList as $chapterName => $navPoint) {
+                // while (list($chapterName, $navPoint) = each($this->ncx->chapterList)) {
                     /** @var $navPoint NavPoint */
                     $fileName = $navPoint->getContentSrc();
                     $level = $navPoint->getLevel() - 2;
@@ -2273,7 +2279,7 @@ class EPub {
             $fileName .= ".epub";
         }
 
-        if (true === $this->zip->sendZip($fileName, "application/epub+zip")) {
+        if (true === $this->zip->sendZip($fileName, "application/epub+zip", $fileName)) {
             return $fileName;
         }
 

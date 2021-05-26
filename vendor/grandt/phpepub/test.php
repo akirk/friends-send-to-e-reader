@@ -1,7 +1,8 @@
-	<?php
+<?php
 
-	use com\grandt\EPub;
-	include_once("EPub.php");
+	require_once './vendor/autoload.php';
+
+	use PHPePub\Core\EPub;
 
 	error_reporting(E_ALL | E_STRICT);
 	ini_set('error_reporting', E_ALL | E_STRICT);
@@ -67,4 +68,5 @@
 		$content_start . "<h1>Epilogue</h1>\n<p>Plenty of test content</p>\n" . $content_end
 	);
 	$book->finalize();
-	$zipData = $book->sendBook("ExampleBook1_test");
+
+	$book->sendBook("ExampleBook1_test");

@@ -480,7 +480,11 @@ class UUID {
     return openssl_random_pseudo_bytes($bytes);
    case self::randMcrypt:
     /* Get the specified number of random bytes via Mcrypt. */
+    // phpcs:disable PHPCompatibility.Extensions.RemovedExtensions.mcryptDeprecatedRemoved
+    // phpcs:disable PHPCompatibility.FunctionUse.RemovedFunctions.mcrypt_create_ivDeprecatedRemoved
     return mcrypt_create_iv($bytes);
+    // phpcs:enable PHPCompatibility.FunctionUse.RemovedFunctions.mcrypt_create_ivDeprecatedRemoved
+    // phpcs:enable PHPCompatibility.Extensions.RemovedExtensions.mcryptDeprecatedRemoved
    case self::randCOM:
     /* Get the specified number of random bytes using Windows'
        randomness source via a COM object previously created by UUID::initRandom().
@@ -628,18 +632,19 @@ class UUID {
  }
 
  public static function initStorage($file = NULL) {
+  $args = func_get_args();
   if (self::$storeClass == "UUIDStorageStable") {
    try {self::$store = new UUIDStorageStable($file);}
    catch(Exception $e) {throw new UUIDStorageException("Storage class could not be instantiated with supplied arguments.", 1003, $e);}
    return;
   }
   $store = new ReflectionClass(self::$storeClass);
-  $args = func_get_args();
   try {self::$store = $store->newInstanceArgs($args);}
   catch(Exception $e) {throw new UUIDStorageException("Storage class could not be instantiated with supplied arguments.", 1003, $e);}
  }
 
  public static function registerStorage($name) {
+  $args = func_get_args();
   try {
    $store = new ReflectionClass($name);
   } catch(Exception $e) {
@@ -648,8 +653,7 @@ class UUID {
   if (array_search("UUIDStorage", $store->getInterfaceNames()) === FALSE)
    throw new UUIDStorageException("Storage class does not implement the UUIDStorage interface.", 1002);
   self::$storeClass = $name;
-  if (func_num_args() > 1) {
-   $args = func_get_args();
+  if (count($args) > 1) {
    array_shift($args);
    try {
     self::$store = $store->newInstanceArgs($args);
