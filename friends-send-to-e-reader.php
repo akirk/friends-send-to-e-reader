@@ -33,9 +33,11 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 	$friends = Friends::get_instance();
 	$nonce_value = 'friends-send-to-e-reader';
 	if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], $nonce_value ) ) {
+		$delete_ereaders = $ereaders;
 		foreach ( $_POST['ereaders'] as $id => $ereader ) {
 			if ( isset( $ereaders[ $id ] ) ) {
 				$ereaders[ $id ] = $ereader;
+				unset( $delete_ereaders[ $id ] );
 				if ( '' == trim( $ereader['email'] ) ) {
 					unset( $ereaders[ $id ] );
 				}
@@ -49,6 +51,9 @@ function friends_send_to_e_reader_about_page( $display_about_friends = false ) {
 
 				}
 			}
+		}
+		foreach ( $delete_ereaders as $id => $ereader ) {
+			unset( $ereaders[$id] );
 		}
 		usort(
 			$ereaders,
