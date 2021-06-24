@@ -272,7 +272,7 @@ function friends_send_to_e_reader_post_notification( WP_Post $post ) {
 
 	$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
 	$id = get_user_option( 'friends_send_to_e_reader', $post->post_author );
-	if ( isset( $ereaders[ $id ] ) ) {
+	if ( false !== $id && isset( $ereaders[ $id ] ) ) {
 		friends_send_post_to_e_reader( $post, $ereaders[ $id ]['email'] );
 	}
 }
