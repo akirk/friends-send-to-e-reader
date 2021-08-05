@@ -249,7 +249,7 @@ function friends_send_to_e_reader_edit_friend( Friend_User $friend ) {
 /**
  * Save the e-reader e-mail address to a friend.
  *
- * @param      Friend_User $friend  The friend/
+ * @param      Friend_User $friend  The friend.
  */
 function friends_send_to_e_reader_edit_friend_submit( Friend_User $friend ) {
 	$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
