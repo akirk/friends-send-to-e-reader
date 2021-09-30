@@ -34,7 +34,7 @@ class ImageHandler
     {
         try {
             imagefilter($img, IMG_FILTER_GRAYSCALE);
-
+            imagesavealpha($img, false);
             ob_start();
             imagejpeg($img);
             $image = ob_get_contents();

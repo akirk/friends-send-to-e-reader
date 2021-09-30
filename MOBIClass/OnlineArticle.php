@@ -100,7 +100,7 @@ class OnlineArticle extends ContentProvider
                 if ($image !== false) {
                     $images[$this->imgCounter] = new FileRecord(new Record($image));
 
-                    $img->setAttribute('recindex', $this->imgCounter);
+                    $img->setAttribute('recindex', str_pad($this->imgCounter + 1, 5, '0', STR_PAD_LEFT));
                     $savedImages[$src] = $this->imgCounter;
                     ++$this->imgCounter;
                 }

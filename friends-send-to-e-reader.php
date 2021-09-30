@@ -329,7 +329,10 @@ function friends_send_post_to_e_reader( WP_Post $post, $email ) {
 	$url = get_permalink( $post );
 
 	$format = 'epub';
-	if ( preg_match( '/@(free\.)?kindle.com$/', $email ) ) {
+	if ( preg_match( '/@(free\.)?kindle.com$/', $email ) || false !== strpos( $email, '+mobi' ) ) {
+		if ( false !== strpos( $email, '+mobi' ) ) {
+			$email = str_replace( '+mobi', '', $email );
+		}
 		$format = 'mobi';
 	}
 
@@ -524,7 +527,7 @@ add_action(
 				'friends_send_to_e_reader_about_page'
 			);
 		} else {
-			add_menu_page( 'friends', __( 'Friends', 'friends' ), 'administrator', 'friends-send-to-e-reader', null, 'dashicons-groups', 3.73 );
+			add_menu_page( 'friends', __( 'Friends', 'friends' ), 'administrator', 'friends-send-to-e-reader', null, 'dashicons-groups', 3 );
 			add_submenu_page(
 				'friends-send-to-e-reader',
 				__( 'About', 'friends' ),
