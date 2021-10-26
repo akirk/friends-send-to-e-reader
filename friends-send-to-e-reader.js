@@ -30,8 +30,13 @@ jQuery( function( $ ) {
 		return false;
 	} );
 
+	$document.on( 'change', 'select#ereader-class', function() {
+		$( '#' + $( this ).val() ).show().siblings().hide();
+		$( '#' + $( this ).val() ).find( 'input:visible:first' ).focus();
+	} );
+
 	$document.on( 'click', 'a.delete-reader', function() {
-		$( this ).closest('tr').html( '<td colspan=2>' + $( this ).data( 'delete-text' ) );
+		$( this ).closest('tr').html( '<td colspan=3>' + $( this ).data( 'delete-text' ) );
 		return false;
 	} );
 
