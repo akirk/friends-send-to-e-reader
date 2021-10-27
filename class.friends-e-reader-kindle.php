@@ -28,6 +28,7 @@ class Friends_E_Reader_Kindle extends Friends_E_Reader_Generic_Email {
 	}
 
 	protected function generate_file( WP_Post $post ) {
+		$this->update_author_name( $post );
 		$content = $this->get_content( 'mobi', $post );
 
 		$dir = rtrim( sys_get_temp_dir(), '/' ) . '/friends_send_to_e_reader';
@@ -35,7 +36,7 @@ class Friends_E_Reader_Kindle extends Friends_E_Reader_Generic_Email {
 			mkdir( $dir );
 		}
 
-		$filename = sanitize_title( $this->strip_emojis( $this->get_author_name( $post ) . ' - ' . $post->post_title ) );
+		$filename = sanitize_title( $this->strip_emojis( $post->author_name . ' - ' . $post->post_title ) );
 
 		require_once __DIR__ . '/MOBIClass/MOBI.php';
 		$mobi = new MOBI();

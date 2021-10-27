@@ -81,7 +81,16 @@ class Friends_Send_To_E_Reader {
 	}
 
 	protected function update_ereaders( $ereaders ) {
+		$this->ereaders = $ereaders;
 		return update_option( 'friends-send-to-e-reader_readers', $ereaders );
+	}
+
+	protected function update_ereader( $id, $ereader ) {
+		if ( ! isset( $this->ereaders[ $id ] ) ) {
+			return false;
+		}
+		$this->ereaders[ $id ] = $ereader;
+		return $this->update_ereaders( $this->ereaders );
 	}
 
 	protected function get_ereader( $id ) {
@@ -205,8 +214,11 @@ class Friends_Send_To_E_Reader {
 		}
 		$ereader = $ereaders[ $_POST['ereader'] ];
 		$result = $ereader->send_post( get_post( $_POST['id'] ) );
-		if ( ! $result ) {
+		if ( ! $result || is_wp_error( $result ) ) {
 			wp_send_json_error( 'error' );
+		}
+		if ( $result instanceof Friends_E_Reader ) {
+			$this->update_ereader( $_POST['ereader'], $result );
 		}
 		wp_send_json_success( 'E-Book sent' );
 	}
@@ -229,7 +241,7 @@ class Friends_Send_To_E_Reader {
 					continue;
 				}
 
-				$ereader = $class::instantiate_from_field_data( $ereader_data );
+				$ereader = $class::instantiate_from_field_data( $id, $ereader_data );
 				$id = $ereader->get_id();
 				if ( ! $id ) {
 					continue;
@@ -298,13 +310,13 @@ class Friends_Send_To_E_Reader {
 								<tr class="template<?php echo empty( $ereaders ) ? '' : ' hidden'; ?>">
 									<td>
 										<select name="ereaders[new][class]" id="ereader-class">
-											<option name="-new"><?php _e( 'Select your E-Reader', 'friends' ); ?></option>
+											<option  disabled selected hidden><?php _e( 'Select your E-Reader', 'friends' ); ?></option>
 											<?php foreach ( $this->ereader_classes as $ereader_class ) : ?>
 												<option value="<?php echo esc_attr( $ereader_class ); ?>"><?php echo esc_html( $ereader_class::NAME ); ?></option>
 											<?php endforeach; ?>
 										</select>
 									</td>
-									<td><input type="text" class="name" name="ereaders[new][name]" value="<?php echo esc_attr__( 'Name', 'friends' ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader Name', 'friends' ); ?>" /></td>
+									<td><input type="text" class="name" name="ereaders[new][name]" placeholder="<?php echo esc_attr__( 'Name', 'friends' ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader Name', 'friends' ); ?>" /></td>
 									<td>
 										<?php foreach ( $this->ereader_classes as $ereader_class ) : ?>
 											<div id="<?php echo esc_html( $ereader_class ); ?>" class="hidden">

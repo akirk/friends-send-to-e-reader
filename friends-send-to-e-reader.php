@@ -38,6 +38,9 @@ add_action(
 
 		require_once __DIR__ . '/class.friends-e-reader-pocketbook.php';
 		$send_to_e_reader->register_ereader( 'Friends_E_Reader_Pocketbook' );
+
+		require_once __DIR__ . '/class.friends-e-reader-tolino.php';
+		$send_to_e_reader->register_ereader( 'Friends_E_Reader_Tolino' );
 	}
 );
 

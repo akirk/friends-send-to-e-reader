@@ -32,6 +32,10 @@ jQuery( function( $ ) {
 
 	$document.on( 'change', 'select#ereader-class', function() {
 		$( '#' + $( this ).val() ).show().siblings().hide();
+		var n = $( 'tr.template input.name' );
+		if ( '' === n.val() ) {
+			n.val( $( this ).find( 'option:selected' ).text() );
+		}
 		$( '#' + $( this ).val() ).find( 'input:visible:first' ).focus();
 	} );
 
