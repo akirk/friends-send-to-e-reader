@@ -8,12 +8,13 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 	protected $hardware_id;
 	protected $access_token;
 	protected $expires;
+	protected $cookies;
 
 	public static $resellers = array(
 		4 => 'Thalia.at',
 	);
 
-	public function __construct( $id, $name, $reseller_id, $refresh_token = null, $hardware_id = null, $access_token = null, $expires = null ) {
+	public function __construct( $id, $name, $reseller_id, $refresh_token = null, $hardware_id = null, $access_token = null, $expires = null, $cookies = null ) {
 		$this->id = $id;
 		$this->name = $name;
 		$this->reseller_id = $reseller_id;
@@ -21,6 +22,7 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 		$this->hardware_id = $hardware_id;
 		$this->access_token = $access_token;
 		$this->expires = $expires;
+		$this->cookies = $cookies;
 	}
 
 	public function get_id() {
@@ -74,6 +76,11 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 		?>
 		<input type="hidden" name="ereaders[<?php echo esc_attr( $id ); ?>][access_token]" value="<?php echo esc_attr( $this->access_token ); ?>" />
 		<input type="hidden" name="ereaders[<?php echo esc_attr( $id ); ?>][expires]" value="<?php echo esc_attr( $this->expires ); ?>" />
+		<?php if ( is_array( $this->cookies ) ) : ?>
+			<?php foreach ( $this->cookies as $cookie ) : ?>
+				<input type="hidden" name="ereaders[<?php echo esc_attr( $id ); ?>][cookies][]" value="<?php echo esc_attr( $cookie ); ?>" />
+			<?php endforeach; ?>
+		<?php endif; ?>
 		<input type="hidden" name="ereaders[<?php echo esc_attr( $id ); ?>][reseller_id]" value="<?php echo esc_attr( $this->reseller_id ); ?>" />
 		<?php
 	}
@@ -109,6 +116,7 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 				'refresh_token' => null,
 				'access_token' => null,
 				'expires' => null,
+				'cookies' => null,
 			),
 			$data
 		);
@@ -117,7 +125,7 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 			$id = null;
 		}
 
-		return new $class( $id, $data['name'], $data['reseller_id'], $data['refresh_token'], $data['hardware_id'], $data['access_token'], $data['expires'] );
+		return new $class( $id, $data['name'], $data['reseller_id'], $data['refresh_token'], $data['hardware_id'], $data['access_token'], $data['expires'], $data['cookies'] );
 	}
 
 	public function send_post( WP_Post $post ) {
@@ -143,15 +151,21 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 						'x_buchde.mandant_id' => $this->reseller_id,
 						'refresh_token' => $this->refresh_token,
 					),
+					'cookies' => $this->cookies,
 				)
 			);
+
 			$data = json_decode( wp_remote_retrieve_body( $response ) );
 
 			if ( $data->access_token ) {
 				$this->access_token = $data->access_token;
 				$this->refresh_token = $data->refresh_token;
 				$this->expires = time() + $data->expires_in;
-				return $this;
+				foreach ( wp_remote_retrieve_cookies( $response ) as $cookie ) {
+					$this->cookies[] = $cookie->getHeaderValue();
+				}
+
+				sleep( 1 );
 			}
 		}
 
@@ -182,6 +196,7 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 			array(
 				'headers'=> $headers,
 				'body'   => $body,
+				'cookies' => $this->cookies,
 			)
 		);
 

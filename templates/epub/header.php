@@ -10,4 +10,4 @@
 <body>
 	<h1><?php echo esc_html( $args['title'] ); ?></h1>
 	<hr />
-	<p><?php echo esc_html( $args['author'] . ' | ' . $args['date'] ); ?></p>
+	<h6 class="author"><?php echo esc_html( $args['author'] . ' | ' . $args['date'] ); ?></h6>

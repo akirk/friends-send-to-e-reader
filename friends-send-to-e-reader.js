@@ -17,8 +17,11 @@ jQuery( function( $ ) {
 			beforeSend: function() {
 				search_indicator.addClass( 'form-icon loading' );
 			},
-			success: function() {
+			success: function( e ) {
 				search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-saved' );
+				if ( e.url ) {
+					location.href = e.url;
+				}
 			}
 		} );
 		return false;

@@ -107,6 +107,7 @@ abstract class Friends_E_Reader {
 		}
 
 		$filename = sanitize_title( $this->strip_emojis( $post->author_name . ' - ' . $post->post_title ) );
+		$url = get_permalink( $post );
 
 		$book = new PHPePub\Core\EPub();
 

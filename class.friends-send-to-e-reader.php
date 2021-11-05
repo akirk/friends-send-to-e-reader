@@ -160,7 +160,7 @@ class Friends_Send_To_E_Reader {
 			<select name="send-to-e-reader[<?php echo esc_attr( $friend->ID ); ?>]">
 				<option value="none">-</option>
 				<?php foreach ( $ereaders as $id => $ereader ) : ?>
-					<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $selected, $id ); ?>><?php echo esc_html( $ereader['name'] ); ?></option>
+					<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $selected, $id ); ?>><?php echo esc_html( $ereader->get_name() ); ?></option>
 				<?php endforeach; ?>
 			</select>
 		</td>
@@ -194,13 +194,17 @@ class Friends_Send_To_E_Reader {
 			?>
 			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader has-icon-right">
 				<?php
-					echo esc_html(
-						sprintf(
-							// translators: %s is an E-Reader name.
-							_x( 'Send to %s', 'e-reader', 'friends' ),
-							$ereader->get_name()
-						)
-					);
+					if ( $ereader instanceof Friends_E_Reader_Download ) {
+						echo esc_html( $ereader->get_name() );
+					} else {
+						echo esc_html(
+							sprintf(
+								// translators: %s is an E-Reader name.
+								_x( 'Send to %s', 'e-reader', 'friends' ),
+								$ereader->get_name()
+							)
+						);
+					}
 				?>
 				<i class="form-icon"></i></a></li>
 			<?php
@@ -215,12 +219,12 @@ class Friends_Send_To_E_Reader {
 		$ereader = $ereaders[ $_POST['ereader'] ];
 		$result = $ereader->send_post( get_post( $_POST['id'] ) );
 		if ( ! $result || is_wp_error( $result ) ) {
-			wp_send_json_error( 'error' );
+			wp_send_json_error( $result );
 		}
 		if ( $result instanceof Friends_E_Reader ) {
 			$this->update_ereader( $_POST['ereader'], $result );
 		}
-		wp_send_json_success( 'E-Book sent' );
+		wp_send_json_success( $result );
 	}
 
 	/**

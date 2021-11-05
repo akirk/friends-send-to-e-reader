@@ -41,6 +41,9 @@ add_action(
 
 		require_once __DIR__ . '/class.friends-e-reader-tolino.php';
 		$send_to_e_reader->register_ereader( 'Friends_E_Reader_Tolino' );
+
+		require_once __DIR__ . '/class.friends-e-reader-download.php';
+		$send_to_e_reader->register_ereader( 'Friends_E_Reader_Download' );
 	}
 );
 
