@@ -140,6 +140,6 @@ class Reference {
      * @return string
      */
     function finalize() {
-        return "\t\t<reference type=\"" . $this->type . "\" title=\"" . $this->title . "\" href=\"" . $this->href . "\" />\n";
+        return "\t\t<reference type=\"" . htmlspecialchars( $this->type ) . "\" title=\"" . htmlspecialchars( $this->title ) . "\" href=\"" . htmlspecialchars( $this->href ) . "\" />\n";
     }
 }
