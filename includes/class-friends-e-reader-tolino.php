@@ -1,4 +1,20 @@
 <?php
+/**
+ * Friends E-Reader Tolino
+ *
+ * This contains the class for a Tolino E-Reader
+ *
+ * @package Friends_Send_To_E_Reader
+ */
+
+/**
+ * This is the class for the sending posts to a Tolino E-Reader for the Friends Plugin.
+ *
+ * @since 0.3
+ *
+ * @package Friends_Send_To_E_Reader
+ * @author Alex Kirk
+ */
 class Friends_E_Reader_Tolino extends Friends_E_Reader {
 	const NAME = 'Tolino';
 	protected $id;
@@ -47,10 +63,10 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 			);
 		}
 		if ( ! $this->refresh_token || ! $this->hardware_id ) {
-		$url = 'https://www.thalia.de/auth/oauth2/authorize?client_id=webreader&response_type=code&scope=SCOPE_BOSH&redirect_uri=' . self_admin_url() . '&x_buchde.skin_id=17&x_buchde.mandant_id=' . intval( $this->reseller_id );
-		?>
-		<a href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'Connect account (broken)', 'friends' ) ?></a><br/>
-		<?php
+			$url = 'https://www.thalia.de/auth/oauth2/authorize?client_id=webreader&response_type=code&scope=SCOPE_BOSH&redirect_uri=' . self_admin_url() . '&x_buchde.skin_id=17&x_buchde.mandant_id=' . intval( $this->reseller_id );
+			?>
+			<a href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'Connect account (broken)', 'friends' ); ?></a><br/>
+			<?php
 		} else {
 			echo esc_html( sprintf( __( 'Connected to %s', 'friends' ), self::$resellers[ $this->reseller_id ] ) );
 		}
@@ -98,25 +114,27 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 			),
 			$data
 		);
-		?><select name="ereaders[<?php echo esc_attr( $data['id'] ); ?>][reseller_id]">
+		?>
+		<select name="ereaders[<?php echo esc_attr( $data['id'] ); ?>][reseller_id]">
 			<option disabled selected hidden><?php esc_html_e( 'Select your Tolino seller', 'friends' ); ?></option>
 			<?php foreach ( self::$resellers as $reseller_id => $name ) : ?>
 				<option value="<?php echo esc_html( $reseller_id ); ?>"><?php echo esc_html( $name ); ?></option>
 			<?php endforeach; ?>
-		</select><?php
+		</select>
+		<?php
 	}
 
 	public static function instantiate_from_field_data( $id, $data ) {
 		$class = get_called_class();
 		$data = array_merge(
 			array(
-				'reseller_id' => null,
+				'reseller_id'   => null,
 				'refresh_token' => null,
-				'hardware_id' => null,
+				'hardware_id'   => null,
 				'refresh_token' => null,
-				'access_token' => null,
-				'expires' => null,
-				'cookies' => null,
+				'access_token'  => null,
+				'expires'       => null,
+				'cookies'       => null,
 			),
 			$data
 		);
@@ -142,14 +160,14 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 			$response = wp_remote_post(
 				'https://www.thalia.de/auth/oauth2/token',
 				array(
-					'body' => array(
-						'client_id' => 'webreader',
-						'grant_type' => 'refresh_token',
-						'scope' => 'SCOPE_BOSH',
-						'redirect_uri' => 'https://webreader.mytolino.com/library/',
-						'x_buchde.skin_id' => '17',
+					'body'    => array(
+						'client_id'           => 'webreader',
+						'grant_type'          => 'refresh_token',
+						'scope'               => 'SCOPE_BOSH',
+						'redirect_uri'        => 'https://webreader.mytolino.com/library/',
+						'x_buchde.skin_id'    => '17',
 						'x_buchde.mandant_id' => $this->reseller_id,
-						'refresh_token' => $this->refresh_token,
+						'refresh_token'       => $this->refresh_token,
 					),
 					'cookies' => $this->cookies,
 				)
@@ -177,8 +195,8 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 		$headers  = array(
 			'content-type' => 'multipart/form-data; boundary=' . $boundary,
 			't_auth_token' => $this->access_token,
-			'hardware_id' => $this->hardware_id,
-			'reseller_id' => $this->reseller_id,
+			'hardware_id'  => $this->hardware_id,
+			'reseller_id'  => $this->reseller_id,
 		);
 
 		$body = '';
@@ -194,8 +212,8 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 		$response = wp_remote_post(
 			'https://bosh.pageplace.de/bosh/rest/upload',
 			array(
-				'headers'=> $headers,
-				'body'   => $body,
+				'headers' => $headers,
+				'body'    => $body,
 				'cookies' => $this->cookies,
 			)
 		);
