@@ -68,6 +68,7 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 			<a href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'Connect account (broken)', 'friends' ); ?></a><br/>
 			<?php
 		} else {
+			// translators: %s is a the name of a Tolino vendor.
 			echo esc_html( sprintf( __( 'Connected to %s', 'friends' ), self::$resellers[ $this->reseller_id ] ) );
 		}
 

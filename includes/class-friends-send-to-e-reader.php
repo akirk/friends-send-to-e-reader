@@ -40,9 +40,9 @@ class Friends_Send_To_E_Reader {
 	 * Register the WordPress hooks
 	 */
 	private function register_hooks() {
-		add_filter( 'notify_new_friend_post', 'post_notification', 10 );
-		add_action( 'friends_edit_friend_table_end', 'edit_friend', 10 );
-		add_action( 'friends_edit_friend_after_form_submit', 'edit_friend_submit', 10 );
+		add_filter( 'notify_new_friend_post', array( $this, 'post_notification' ), 10 );
+		add_action( 'friends_edit_friend_table_end', array( $this, 'edit_friend' ), 10 );
+		add_action( 'friends_edit_friend_after_form_submit', array( $this, 'edit_friend_submit' ), 10 );
 		add_action( 'friends_notification_manager_header', array( $this, 'notification_manager_header' ) );
 		add_action( 'friends_notification_manager_row', array( $this, 'notification_manager_row' ) );
 		add_action( 'friends_notification_manager_after_form_submit', array( $this, 'notification_manager_after_form_submit' ) );
@@ -103,7 +103,7 @@ class Friends_Send_To_E_Reader {
 			return;
 		}
 		if ( is_user_logged_in() && ( Friends::on_frontend() ) ) {
-			wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __FILE__ ), array( 'friends' ), 1.0 );
+			wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array( 'friends' ), 1.0 );
 		}
 	}
 
@@ -111,7 +111,7 @@ class Friends_Send_To_E_Reader {
 		if ( ! class_exists( 'Friends' ) ) {
 			return;
 		}
-		wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __FILE__ ), array(), 1.0 );
+		wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array(), 1.0 );
 	}
 
 	public function admin_menu() {

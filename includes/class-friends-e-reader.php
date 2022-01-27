@@ -54,7 +54,7 @@ abstract class Friends_E_Reader {
 	}
 
 	protected function get_content( $format, WP_Post $post ) {
-		require_once __DIR__ . '/class.friends-send-to-e-reader-template-loader.php';
+		require_once __DIR__ . '/class-friends-send-to-e-reader-template-loader.php';
 		$template_loader = new Friends_Send_To_E_Reader_Template_Loader();
 
 		ob_start();
@@ -117,7 +117,7 @@ abstract class Friends_E_Reader {
 
 		$book->setSourceURL( $url );
 
-		require_once __DIR__ . '/class.friends-send-to-e-reader-template-loader.php';
+		require_once __DIR__ . '/class-friends-send-to-e-reader-template-loader.php';
 		$template_loader = new Friends_Send_To_E_Reader_Template_Loader();
 
 		$book->addCSSFile( 'style.css', 'css', file_get_contents( $template_loader->get_template_part( 'epub/style', null, array(), false ) ) );
