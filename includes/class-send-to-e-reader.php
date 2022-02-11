@@ -69,7 +69,7 @@ class Send_To_E_Reader {
 					$alloptions = wp_load_alloptions();
 					if ( isset( $alloptions['friends-send-to-e-reader_readers'] ) ) {
 						$alloptions['friends-send-to-e-reader_readers'] = str_replace( 'Friends_', 'Friends\\', $alloptions['friends-send-to-e-reader_readers'] );
-						update_option( 'friends-send-to-e-reader_readers', unserialize( $alloptions['friends-send-to-e-reader_readers'] ) );
+						$this->update_ereaders( unserialize( $alloptions['friends-send-to-e-reader_readers'] ) );
 						return $this->get_ereaders();
 					}
 				}
@@ -111,7 +111,7 @@ class Send_To_E_Reader {
 	}
 
 	public function wp_enqueue_scripts() {
-		if ( ! class_exists( 'Friends' ) ) {
+		if ( ! class_exists( 'Friends\Friends' ) ) {
 			return;
 		}
 		if ( is_user_logged_in() && ( Friends::on_frontend() ) ) {
@@ -120,7 +120,7 @@ class Send_To_E_Reader {
 	}
 
 	public function admin_enqueue_scripts() {
-		if ( ! class_exists( 'Friends' ) ) {
+		if ( ! class_exists( 'Friends\Friends' ) ) {
 			return;
 		}
 		wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array(), 1.0 );
@@ -252,7 +252,11 @@ class Send_To_E_Reader {
 		if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], $nonce_value ) ) {
 			$delete_ereaders = $ereaders;
 			foreach ( $_POST['ereaders'] as $id => $ereader_data ) {
-				$class = $ereader_data['class'];
+				if ( ! isset( $ereader_data['class'] ) ) {
+					continue;
+				}
+
+				$class = wp_unslash( $ereader_data['class'] );
 				if ( ! $class || ! class_exists( $class ) || ! is_subclass_of( $class, 'Friends\E_Reader' ) ) {
 					continue;
 				}
