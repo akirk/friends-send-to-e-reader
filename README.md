@@ -1,4 +1,4 @@
-# Friends Post Collection
+# Friends Send to E-Reader
 
 Send new articles directly to your e-reader via e-mail or download the ePub.
 
