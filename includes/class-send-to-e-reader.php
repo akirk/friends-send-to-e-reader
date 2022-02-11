@@ -7,6 +7,8 @@
  * @package Friends_Send_To_E_Reader
  */
 
+namespace Friends;
+
 /**
  * This is the class for the sending posts to an E-Reader for the Friends Plugin.
  *
@@ -15,7 +17,7 @@
  * @package Friends_Send_To_E_Reader
  * @author Alex Kirk
  */
-class Friends_Send_To_E_Reader {
+class Send_To_E_Reader {
 	/**
 	 * Contains a reference to the Friends class.
 	 *
@@ -61,13 +63,23 @@ class Friends_Send_To_E_Reader {
 		if ( is_null( $this->ereaders ) ) {
 			$this->ereaders = array();
 			foreach ( get_option( 'friends-send-to-e-reader_readers', array() ) as $id => $ereader ) {
+				if ( get_class( $ereader ) === '__PHP_Incomplete_Class' ) {
+					// We need to update these to new class names.
+					$this->ereaders = null;
+					$alloptions = wp_load_alloptions();
+					if ( isset( $alloptions['friends-send-to-e-reader_readers'] ) ) {
+						$alloptions['friends-send-to-e-reader_readers'] = str_replace( 'Friends_', 'Friends\\', $alloptions['friends-send-to-e-reader_readers'] );
+						update_option( 'friends-send-to-e-reader_readers', unserialize( $alloptions['friends-send-to-e-reader_readers'] ) );
+						return $this->get_ereaders();
+					}
+				}
 				if ( is_array( $ereader ) ) {
 					if ( '@kindle.com' === substr( $ereader['email'], -11 ) || '@free.kindle.com' === substr( $ereader['email'], -16 ) || false !== strpos( $ereader['email'], '+mobi' ) ) {
-						$ereader = new Friends_E_Reader_Kindle( $ereader['name'], $ereader['email'] );
+						$ereader = new E_Reader_Kindle( $ereader['name'], $ereader['email'] );
 					} elseif ( '@pbsync.com' === substr( $ereader['email'], -11 ) ) {
-						$ereader = new Friends_E_Reader_Pocketbook( $ereader['name'], $ereader['email'] );
+						$ereader = new E_Reader_Pocketbook( $ereader['name'], $ereader['email'] );
 					} else {
-						$ereader = new Friends_E_Reader_Generic_Email( $ereader['name'], $ereader['email'] );
+						$ereader = new E_Reader_Generic_Email( $ereader['name'], $ereader['email'] );
 					}
 					$id = $ereader->get_id();
 				}
@@ -194,17 +206,17 @@ class Friends_Send_To_E_Reader {
 			?>
 			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader has-icon-right">
 				<?php
-					if ( $ereader instanceof Friends_E_Reader_Download ) {
-						echo esc_html( $ereader->get_name() );
-					} else {
-						echo esc_html(
-							sprintf(
-								// translators: %s is an E-Reader name.
-								_x( 'Send to %s', 'e-reader', 'friends' ),
-								$ereader->get_name()
-							)
-						);
-					}
+				if ( $ereader instanceof E_Reader_Download ) {
+					echo esc_html( $ereader->get_name() );
+				} else {
+					echo esc_html(
+						sprintf(
+							// translators: %s is an E-Reader name.
+							_x( 'Send to %s', 'e-reader', 'friends' ),
+							$ereader->get_name()
+						)
+					);
+				}
 				?>
 				<i class="form-icon"></i></a></li>
 			<?php
@@ -221,7 +233,7 @@ class Friends_Send_To_E_Reader {
 		if ( ! $result || is_wp_error( $result ) ) {
 			wp_send_json_error( $result );
 		}
-		if ( $result instanceof Friends_E_Reader ) {
+		if ( $result instanceof E_Reader ) {
 			$this->update_ereader( $_POST['ereader'], $result );
 		}
 		wp_send_json_success( $result );
@@ -241,7 +253,7 @@ class Friends_Send_To_E_Reader {
 			$delete_ereaders = $ereaders;
 			foreach ( $_POST['ereaders'] as $id => $ereader_data ) {
 				$class = $ereader_data['class'];
-				if ( ! $class || ! class_exists( $class ) || ! is_subclass_of( $class, 'Friends_E_Reader' ) ) {
+				if ( ! $class || ! class_exists( $class ) || ! is_subclass_of( $class, 'Friends\E_Reader' ) ) {
 					continue;
 				}
 
@@ -484,9 +496,9 @@ class Friends_Send_To_E_Reader {
 	/**
 	 * Send a post to the E-Reader if enabled for the friend.
 	 *
-	 * @param      WP_Post $post   The post.
+	 * @param      \WP_Post $post   The post.
 	 */
-	function post_notification( WP_Post $post ) {
+	function post_notification( \WP_Post $post ) {
 		if ( 'trash' === $post->post_status ) {
 			return;
 		}

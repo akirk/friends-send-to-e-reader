@@ -7,6 +7,8 @@
  * @package Friends_Send_To_E_Reader
  */
 
+namespace Friends;
+
 /**
  * This is the class for the sending posts to a Pocketbook E-Reader for the Friends Plugin.
  *
@@ -15,7 +17,7 @@
  * @package Friends_Send_To_E_Reader
  * @author Alex Kirk
  */
-class Friends_E_Reader_Pocketbook extends Friends_E_Reader_Generic_Email {
+class E_Reader_Pocketbook extends E_Reader_Generic_Email {
 	const NAME = 'Pocketbook';
 
 	public static function get_defaults() {

@@ -7,6 +7,8 @@
  * @package Friends_Send_To_E_Reader
  */
 
+namespace Friends;
+
 /**
  * This is the class for the sending posts to a generic E-Reader for the Friends Plugin.
  *
@@ -15,7 +17,7 @@
  * @package Friends_Send_To_E_Reader
  * @author Alex Kirk
  */
-class Friends_E_Reader_Download extends Friends_E_Reader {
+class E_Reader_Download extends E_Reader {
 	const NAME = 'Download ePub';
 	protected $id;
 	protected $name;
@@ -61,11 +63,11 @@ class Friends_E_Reader_Download extends Friends_E_Reader {
 	/**
 	 * Send a post to the E-Reader reachable at the particular e-mail address.
 	 *
-	 * @param      WP_Post $post    The post.
+	 * @param      \WP_Post $post    The post.
 	 *
 	 * @return     bool     Whether it was sent successfully.
 	 */
-	public function send_post( WP_Post $post ) {
+	public function send_post( \WP_Post $post ) {
 		$tmp_file = $this->generate_file( $post );
 
 		if ( ! file_exists( $tmp_file ) ) {

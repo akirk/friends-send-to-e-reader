@@ -17,6 +17,9 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 
 ## Changelog
 
+### 0.4
+- Update for Friends 2.0
+
 ### 0.3
 - Allow downloading the ePub.
 - Theoretically add support for Tolino. Not functional because Thalia doesn't want to provide OAuth2 credentials.

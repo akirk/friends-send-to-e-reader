@@ -7,6 +7,8 @@
  * @package Friends_Send_To_E_Reader
  */
 
+namespace Friends;
+
 /**
  * This is the class for the sending posts to a Tolino E-Reader for the Friends Plugin.
  *
@@ -15,7 +17,7 @@
  * @package Friends_Send_To_E_Reader
  * @author Alex Kirk
  */
-class Friends_E_Reader_Tolino extends Friends_E_Reader {
+class E_Reader_Tolino extends E_Reader {
 	const NAME = 'Tolino';
 	protected $id;
 	protected $name;
@@ -147,7 +149,7 @@ class Friends_E_Reader_Tolino extends Friends_E_Reader {
 		return new $class( $id, $data['name'], $data['reseller_id'], $data['refresh_token'], $data['hardware_id'], $data['access_token'], $data['expires'], $data['cookies'] );
 	}
 
-	public function send_post( WP_Post $post ) {
+	public function send_post( \WP_Post $post ) {
 		if ( ! $this->access_token && ! $this->refresh_token ) {
 			return false;
 		}

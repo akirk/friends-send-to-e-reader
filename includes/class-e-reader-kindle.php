@@ -7,6 +7,8 @@
  * @package Friends_Send_To_E_Reader
  */
 
+namespace Friends;
+
 /**
  * This is the class for the sending posts to a Kindle E-Reader for the Friends Plugin.
  *
@@ -15,7 +17,7 @@
  * @package Friends_Send_To_E_Reader
  * @author Alex Kirk
  */
-class Friends_E_Reader_Kindle extends Friends_E_Reader_Generic_Email {
+class E_Reader_Kindle extends E_Reader_Generic_Email {
 	const NAME = 'Kindle';
 
 	public static function get_defaults() {
@@ -27,7 +29,7 @@ class Friends_E_Reader_Kindle extends Friends_E_Reader_Generic_Email {
 		);
 	}
 
-	protected function generate_file( WP_Post $post ) {
+	protected function generate_file( \WP_Post $post ) {
 		$this->update_author_name( $post );
 		$content = $this->get_content( 'mobi', $post );
 
