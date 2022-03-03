@@ -445,9 +445,9 @@ class Send_To_E_Reader {
 	/**
 	 * Display an input field to enter the e-reader e-mail address.
 	 *
-	 * @param      Friend_User $friend  The friend.
+	 * @param      User $friend  The friend.
 	 */
-	function edit_friend( Friend_User $friend ) {
+	function edit_friend( User $friend ) {
 		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
 		$selected = get_user_option( 'friends_send_to_e_reader', $friend->ID );
 		?>
@@ -486,9 +486,9 @@ class Send_To_E_Reader {
 	/**
 	 * Save the e-reader e-mail address to a friend.
 	 *
-	 * @param      Friend_User $friend  The friend.
+	 * @param      User $friend  The friend.
 	 */
-	function edit_friend_submit( Friend_User $friend ) {
+	function edit_friend_submit( User $friend ) {
 		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
 		if ( isset( $_POST['send-to-e-reader'] ) && isset( $ereaders[ $_POST['send-to-e-reader'] ] ) ) {
 			update_user_option( $friend->ID, 'friends_send_to_e_reader', $_POST['send-to-e-reader'] );
@@ -513,10 +513,4 @@ class Send_To_E_Reader {
 			$this->send_post( $post, $ereaders[ $id ]['email'] );
 		}
 	}
-
-	private function upload_tolino( $access_token, $hardware_id, $file ) {
-		// curl -vL -H "t_auth_token: $ACCESS_TOKEN" -H "hardware_id: $HARDWARE_ID" -H "reseller_id: $RESELLER_ID" -F "file=@$ZEIT_EPUB" https://bosh.pageplace.de/bosh/rest/upload
-
-	}
-
 }
