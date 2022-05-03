@@ -232,7 +232,7 @@ class Send_To_E_Reader {
 		?>
 		<li class="menu-item">
 			<label class="form-switch">
-				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'incl. all newer posts', 'friends' ); ?>
+				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all newer posts', 'friends' ); ?>
 			</label>
 		</li>
 		<?php
