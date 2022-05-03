@@ -40,16 +40,16 @@ class E_Reader_Kindle extends E_Reader_Generic_Email {
 
 		$filename = sanitize_title( $this->strip_emojis( $post->author_name . ' - ' . $post->post_title ) );
 
-		require_once __DIR__ . '/MOBIClass/MOBI.php';
-		$mobi = new MOBI();
+		require_once __DIR__ . '/../MOBIClass/MOBI.php';
+		$mobi = new \MOBI();
 
-		$mobi_content = new OnlineArticle( $url, $content );
+		$mobi_content = new \OnlineArticle( $url, $content );
 
 		$mobi_content->setMetadata( 'title', $this->strip_emojis( $post->post_title ) );
 		$mobi_content->setMetadata( 'author', $post->author_name );
 		$mobi_content->setMetadata( 'publishingdate', gmdate( 'd-m-Y' ) );
 
-		$mobi_content->setMetadata( 'source', $url );
+		$mobi_content->setMetadata( 'source', get_permalink( $post ) );
 		$mobi_content->setMetadata( 'publisher', get_bloginfo( 'name' ), get_bloginfo( 'url' ) );
 
 		$mobi->setContentProvider( $mobi_content );
