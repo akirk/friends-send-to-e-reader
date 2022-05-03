@@ -201,7 +201,15 @@ class Send_To_E_Reader {
 		$divider = '<li class="divider" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
 		$ereaders = $this->get_ereaders();
 		foreach ( $ereaders as $id => $ereader ) {
-			echo $divider;
+			echo wp_kses(
+				$divider,
+				array(
+					'li' => array(
+						'class'        => array(),
+						'data-content' => array(),
+					),
+				)
+			);
 			$divider = '';
 			?>
 			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" data-ereader="<?php echo esc_attr( $id ); ?>" class="friends-send-post-to-e-reader has-icon-right">
@@ -261,6 +269,10 @@ class Send_To_E_Reader {
 					continue;
 				}
 
+				if ( 'new' === $id && isset( $_POST['ereaders'][ 'new' . $class ] ) ) {
+					$ereader_data = array_merge( $ereader_data, $_POST['ereaders'][ 'new' . $class ] );
+				}
+
 				$ereader = $class::instantiate_from_field_data( $id, $ereader_data );
 				$id = $ereader->get_id();
 				if ( ! $id ) {
@@ -307,30 +319,24 @@ class Send_To_E_Reader {
 								<tbody>
 								<?php
 								foreach ( $ereaders as $id => $ereader ) :
+									$delete_text = sprintf(
+										// translators: %1$s is the button named "delete", %2$s is the user given name of an e-reader.
+										__( 'Click %1$s to really delete the reader %2$s.', 'friends' ),
+										'<em>' . esc_html( $save_changes ) . '</em>',
+										'<em>' . esc_html( $ereader->get_name() ) . '</em>'
+									);
 									?>
 									<tr>
 										<td><input type="hidden" name="ereaders[<?php echo esc_attr( $id ); ?>][class]" value="<?php echo esc_attr( get_class( $ereader ) ); ?>" /><?php echo esc_html( $ereader::NAME ); ?> </td>
 										<td><input type="text" class="name" name="ereaders[<?php echo esc_attr( $id ); ?>][name]" value="<?php echo esc_attr( $ereader->get_name() ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader Name', 'friends' ); ?>" /></td>
 										<td><?php $ereader->render_input(); ?></td>
-										<td><a href="" class="delete-reader" data-delete-text="
-										<?php
-										echo wp_kses(
-											sprintf(
-											// translators: %1$s is the button named "delete", %2$s is the user given name of an e-reader.
-												__( 'Click %1$s to really delete the reader %2$s.', 'friends' ),
-												'<em>' . esc_html( $save_changes ) . '</em>',
-												'<em>' . esc_html( $ereader->get_name() )
-											) . '</em>',
-											array( 'em' => array() )
-										);
-										?>
-											"><?php _e( 'delete' ); ?></a></td>
+										<td><a href="" class="delete-reader" data-delete-text="<?php echo wp_kses( $delete_text, array( 'em' => array() ) ); ?>"><?php esc_html_e( 'delete' ); /* phpcs:ignore WordPress.WP.I18n.MissingArgDomain */ ?></a></td>
 									</tr>
 								<?php endforeach; ?>
 								<tr class="template<?php echo empty( $ereaders ) ? '' : ' hidden'; ?>">
 									<td>
 										<select name="ereaders[new][class]" id="ereader-class">
-											<option  disabled selected hidden><?php _e( 'Select your E-Reader', 'friends' ); ?></option>
+											<option  disabled selected hidden><?php esc_html_e( 'Select your E-Reader', 'friends' ); ?></option>
 											<?php foreach ( $this->ereader_classes as $ereader_class ) : ?>
 												<option value="<?php echo esc_attr( $ereader_class ); ?>"><?php echo esc_html( $ereader_class::NAME ); ?></option>
 											<?php endforeach; ?>

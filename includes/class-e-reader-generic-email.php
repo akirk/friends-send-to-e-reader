@@ -55,7 +55,7 @@ class E_Reader_Generic_Email extends E_Reader {
 
 	public static function get_defaults() {
 		return array(
-			'id'                => 'new',
+			'id'                => 'new' . get_called_class(),
 			'email'             => '',
 			'email_placeholder' => __( 'E-Reader E-Mail address', 'friends' ),
 		);

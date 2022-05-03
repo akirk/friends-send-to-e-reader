@@ -34,12 +34,13 @@ jQuery( function( $ ) {
 	} );
 
 	$document.on( 'change', 'select#ereader-class', function() {
-		$( '#' + $( this ).val() ).show().siblings().hide();
+		var td = $( '#' + $( this ).val().replace( '\\', '\\\\' ) );
+		td.show().siblings().hide();
 		var n = $( 'tr.template input.name' );
 		if ( '' === n.val() ) {
 			n.val( $( this ).find( 'option:selected' ).text() );
 		}
-		$( '#' + $( this ).val() ).find( 'input:visible:first' ).focus();
+		td.find( 'input:visible:first' ).focus();
 	} );
 
 	$document.on( 'click', 'a.delete-reader', function() {
