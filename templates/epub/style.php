@@ -11,14 +11,6 @@ table {
 	border-spacing: 0;
 }
 
-ol, ul, li, dl, dt, dd {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	vertical-align: baseline;
-}
-
 body {
 	text-align: justify;
 	font-size: 100%;
@@ -46,17 +38,22 @@ body > section > :last-child {
 p {
 	font-family: serif;
 	text-align: justify;
-	text-indent: 1em;
+	text-indent: 0;
 	widows: 2;
 	orphans: 2;
+	margin-bottom: .5em;
 }
 
 h1, h2 {
-	font-family: sans-serif;
 	font-style: italic;
-	text-align: left;
 	font-size: 1.5em;
-	margin-bottom: 1em;
+}
+
+h1, h2, h3, h4 {
+	font-family: sans-serif;
+	text-align: left;
+	margin-top: 1em;
+	margin-bottom: .3em;
 }
 
 h6.author {
@@ -68,12 +65,15 @@ h6.author {
 }
 
 blockquote {
-	border-left: .2rem solid #f6f6fa;
+	border-left: .1rem solid #dddddd;
 	margin-left: 0;
-	padding: .2rem .4rem;
+	margin-top: .5rem;
+	margin-bottom: .5rem;
+	padding: 0 .7rem;
 }
+
 blockquote p {
-	margin-top: .2rem;
+	margin-bottom: .2rem;
 }
 
 figure img, img.size-full {
