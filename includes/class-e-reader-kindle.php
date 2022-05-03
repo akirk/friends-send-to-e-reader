@@ -29,7 +29,7 @@ class E_Reader_Kindle extends E_Reader_Generic_Email {
 		);
 	}
 
-	protected function generate_file( \WP_Post $post ) {
+	protected function old_generate_file( \WP_Post $post ) {
 		$this->update_author_name( $post );
 		$content = $this->get_content( 'mobi', $post );
 

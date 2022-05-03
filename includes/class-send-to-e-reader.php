@@ -74,11 +74,11 @@ class Send_To_E_Reader {
 					}
 				}
 				if ( is_array( $ereader ) ) {
-					if ( '@kindle.com' === substr( $ereader['email'], -11 ) || '@free.kindle.com' === substr( $ereader['email'], -16 ) || false !== strpos( $ereader['email'], '+mobi' ) ) {
+					if ( false !== strpos( $ereader['email'], '+mobi' ) ) {
 						$ereader = new E_Reader_Kindle( $ereader['name'], $ereader['email'] );
 					} elseif ( '@pbsync.com' === substr( $ereader['email'], -11 ) ) {
 						$ereader = new E_Reader_Pocketbook( $ereader['name'], $ereader['email'] );
-					} else {
+					} else { // '@kindle.com' === substr( $ereader['email'], -11 ) || '@free.kindle.com' === substr( $ereader['email'], -16 )
 						$ereader = new E_Reader_Generic_Email( $ereader['name'], $ereader['email'] );
 					}
 					$id = $ereader->get_id();
