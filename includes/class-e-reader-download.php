@@ -63,12 +63,12 @@ class E_Reader_Download extends E_Reader {
 	/**
 	 * Send a post to the E-Reader reachable at the particular e-mail address.
 	 *
-	 * @param      \WP_Post $post    The post.
+	 * @param      array $posts    The posts.
 	 *
 	 * @return     bool     Whether it was sent successfully.
 	 */
-	public function send_post( \WP_Post $post ) {
-		$tmp_file = $this->generate_file( $post );
+	public function send_posts( $posts ) {
+		$tmp_file = $this->generate_file( $posts );
 
 		if ( ! file_exists( $tmp_file ) ) {
 			return false;

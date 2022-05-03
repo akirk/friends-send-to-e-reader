@@ -75,19 +75,19 @@ class E_Reader_Generic_Email extends E_Reader {
 	/**
 	 * Send a post to the E-Reader reachable at the particular e-mail address.
 	 *
-	 * @param      \WP_Post $post    The post.
+	 * @param      array $posts    The posts.
 	 *
 	 * @return     bool     Whether it was sent successfully.
 	 */
-	public function send_post( \WP_Post $post ) {
-		$file = $this->generate_file( $post );
+	public function send_posts( array $posts ) {
+		$file = $this->generate_file( $posts );
 
 		if ( ! file_exists( $file ) ) {
 			return false;
 		}
 
 		$friends = Friends::get_instance();
-		$friends->notifications->send_mail( $this->email, $post->post_title, $post->post_title, array(), array( $file ) );
+		$friends->notifications->send_mail( $this->email, $this->ebook_title, $this->ebook_title, array(), array( $file ) );
 		unlink( $file );
 		return true;
 	}

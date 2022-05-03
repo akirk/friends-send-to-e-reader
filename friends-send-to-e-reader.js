@@ -9,9 +9,18 @@ jQuery( function( $ ) {
 			return;
 		}
 
+		var ids = [ $this.data( 'id' ) ];
+		if ( $this.closest( 'ul' ).find( 'li.menu-item input[name=multi-entry]' ).is( ':checked' ) ) {
+			$this.closest( 'article' ).prevAll().slice( -30 ).each( function( i, article ) {
+				if ( 'post-' === article.id.substr( 0, 5 ) ) {
+					ids.push( Number( article.id.substr( 5 ) ) );
+				}
+			} );
+		}
+
 		wp.ajax.send( 'send-post-to-e-reader', {
 			data: {
-				id: $this.data( 'id' ),
+				ids: ids,
 				ereader: $this.data( 'ereader' )
 			},
 			beforeSend: function() {
