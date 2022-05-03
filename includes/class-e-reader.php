@@ -18,11 +18,12 @@ namespace Friends;
  * @author Alex Kirk
  */
 abstract class E_Reader {
+	protected $ebook_title;
 	abstract public function get_id();
 	abstract public function render_input();
 	abstract public static function render_template( $data = array() );
 	abstract public static function instantiate_from_field_data( $id, $data );
-	abstract public function send_post( \WP_Post $post );
+	abstract public function send_posts( array $posts );
 
 	/**
 	 * Strip Emojis from text
@@ -98,33 +99,55 @@ abstract class E_Reader {
 		return $post->author_name;
 	}
 
-	protected function generate_file( \WP_Post $post ) {
-		$this->update_author_name( $post );
-
-		$content = $this->get_content( 'epub', $post );
+	protected function generate_file( array $posts ) {
+		$authors = array();
+		$this->ebook_title = false;
 
 		$dir = rtrim( sys_get_temp_dir(), '/' ) . '/friends_send_to_e_reader';
 		if ( ! file_exists( $dir ) ) {
 			mkdir( $dir );
 		}
 
-		$filename = sanitize_title( $this->strip_emojis( $post->author_name . ' - ' . $post->post_title ) );
-		$url = get_permalink( $post );
+		foreach ( $posts as $post ) {
+			if ( ! $this->ebook_title ) {
+				$this->ebook_title = $this->strip_emojis( $post->post_title );
+			}
 
+			$author_name = $this->update_author_name( $post );
+			if ( ! in_array( $author_name, $authors ) ) {
+				$authors[] = $author_name;
+			}
+		}
+
+		if ( count( $posts ) > 1 ) {
+			// translators: %s is a post title. This is a title to be used when multiple posts are compiled to an ePub.
+			$this->ebook_title = sprintf( __( '%s and more', 'friends' ), $this->ebook_title );
+		}
+
+		$filename = sanitize_title( substr( $this->strip_emojis( implode( '_', array_slice( $authors, 0, 5 ) ) ), 0, 40 ) . ' - ' . substr( $this->ebook_title, 0, 100 ) );
+		$url = home_url( '?' . implode( '-', array_map( 'intval', array_column( $posts, 'ID' ) ) ) );
 		$book = new \PHPePub\Core\EPub();
 
-		$book->setTitle( $this->strip_emojis( $post->post_title ) );
+		$book->setTitle( $this->ebook_title );
 		$book->setIdentifier( $url, \PHPePub\Core\EPub::IDENTIFIER_URI );
-		$book->setAuthor( $post->author_name, $post->author_name );
+		$book->setAuthor( implode( ', ', $authors ), implode( ', ', $authors ) );
 
 		$book->setSourceURL( $url );
 
 		require_once __DIR__ . '/class-send-to-e-reader-template-loader.php';
 		$template_loader = new Send_To_E_Reader_Template_Loader();
-
 		$book->addCSSFile( 'style.css', 'css', file_get_contents( $template_loader->get_template_part( 'epub/style', null, array(), false ) ) );
 
-		$book->addChapter( $post->post_title, $filename . '.html', $content, false, \PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
+		foreach ( $posts as $post ) {
+			$content = $this->get_content( 'epub', $post );
+
+			$book->addChapter( $post->post_title, sanitize_title( substr( $this->strip_emojis( $post->post_author ), 0, 40 ) . ' - ' . substr( $post->post_title, 0, 100 ) ) . '.html', $content, false, \PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
+		}
+
+		if ( count( $posts ) > 1 ) {
+			$book->buildTOC( null, 'toc', __( 'Table of Contents', 'friends' ), true, true );
+		}
+
 		$book->finalize();
 		$book->saveBook( $filename . '.epub', $dir );
 

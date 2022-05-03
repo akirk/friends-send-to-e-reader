@@ -229,6 +229,13 @@ class Send_To_E_Reader {
 				<i class="form-icon"></i></a></li>
 			<?php
 		}
+		?>
+		<li class="menu-item">
+			<label class="form-switch">
+				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all newer posts', 'friends' ); ?>
+			</label>
+		</li>
+		<?php
 	}
 
 	function ajax_send() {
@@ -237,7 +244,7 @@ class Send_To_E_Reader {
 			wp_send_json_error( 'error' );
 		}
 		$ereader = $ereaders[ $_POST['ereader'] ];
-		$result = $ereader->send_post( get_post( $_POST['id'] ) );
+		$result = $ereader->send_posts( array_map( 'get_post', (array) $_POST['ids'] ) );
 		if ( ! $result || is_wp_error( $result ) ) {
 			wp_send_json_error( $result );
 		}
@@ -516,7 +523,7 @@ class Send_To_E_Reader {
 		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
 		$id = get_user_option( 'friends_send_to_e_reader', $post->post_author );
 		if ( false !== $id && isset( $ereaders[ $id ] ) ) {
-			$this->send_post( $post, $ereaders[ $id ]['email'] );
+			$ereaders[ $id ]->send_posts( array( $post ), $ereaders[ $id ]['email'] );
 		}
 	}
 }
