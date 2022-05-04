@@ -63,12 +63,14 @@ class E_Reader_Download extends E_Reader {
 	/**
 	 * Send a post to the E-Reader reachable at the particular e-mail address.
 	 *
-	 * @param      array $posts    The posts.
+	 * @param      array  $posts    The posts.
+	 * @param      string $title   The title.
+	 * @param      string $author  The author.
 	 *
 	 * @return     bool     Whether it was sent successfully.
 	 */
-	public function send_posts( $posts ) {
-		$tmp_file = $this->generate_file( $posts );
+	public function send_posts( $posts, $title = null, $author = null ) {
+		$tmp_file = $this->generate_file( $posts, $title, $author );
 
 		if ( ! file_exists( $tmp_file ) ) {
 			return false;

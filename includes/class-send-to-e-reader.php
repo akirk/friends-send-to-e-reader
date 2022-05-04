@@ -52,6 +52,7 @@ class Send_To_E_Reader {
 		add_action( 'admin_menu', array( $this, 'admin_menu' ), 50 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 40 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
+		add_action( 'wp_footer', array( $this, 'print_dialog' ) );
 		add_action( 'wp_ajax_send-post-to-e-reader', array( $this, 'ajax_send' ) );
 	}
 
@@ -114,8 +115,20 @@ class Send_To_E_Reader {
 		if ( ! class_exists( 'Friends\Friends' ) ) {
 			return;
 		}
-		if ( is_user_logged_in() && ( Friends::on_frontend() ) ) {
+		if ( is_user_logged_in() && Friends::on_frontend() ) {
 			wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array( 'friends' ), 1.0 );
+		}
+	}
+
+	public function print_dialog() {
+		if ( ! class_exists( 'Friends\Friends' ) ) {
+			return;
+		}
+		if ( is_user_logged_in() && Friends::on_frontend() ) {
+			require_once __DIR__ . '/class-send-to-e-reader-template-loader.php';
+			$template_loader = new Send_To_E_Reader_Template_Loader();
+
+			$template_loader->get_template_part( 'dialog' );
 		}
 	}
 
@@ -157,7 +170,7 @@ class Send_To_E_Reader {
 			return;
 		}
 		?>
-			<th class="column-send-to-e-reader"><?php esc_html_e( 'Send to E-Reader' ); ?></th>
+			<th class="column-send-to-e-reader"><?php esc_html_e( 'Send to E-Reader', 'friends' ); ?></th>
 		<?php
 	}
 
@@ -232,7 +245,7 @@ class Send_To_E_Reader {
 		?>
 		<li class="menu-item">
 			<label class="form-switch">
-				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all newer posts', 'friends' ); ?>
+				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all posts above', 'friends' ); ?>
 			</label>
 		</li>
 		<?php
@@ -244,7 +257,11 @@ class Send_To_E_Reader {
 			wp_send_json_error( 'error' );
 		}
 		$ereader = $ereaders[ $_POST['ereader'] ];
-		$result = $ereader->send_posts( array_map( 'get_post', (array) $_POST['ids'] ) );
+		$result = $ereader->send_posts(
+			array_map( 'get_post', (array) $_POST['ids'] ),
+			empty( $_POST['title'] ) ? false : $_POST['title'],
+			empty( $_POST['author'] ) ? false : $_POST['author']
+		);
 		if ( ! $result || is_wp_error( $result ) ) {
 			wp_send_json_error( $result );
 		}
@@ -306,7 +323,7 @@ class Send_To_E_Reader {
 		$save_changes = __( 'Save Changes', 'friends' );
 
 		?>
-		<h1><?php _e( 'Friends Send to E-Reader', 'friends' ); ?></h1>
+		<h1><?php esc_html_e( 'Friends Send to E-Reader', 'friends' ); ?></h1>
 
 		<form method="post">
 			<?php wp_nonce_field( $nonce_value ); ?>
@@ -361,7 +378,7 @@ class Send_To_E_Reader {
 								</tbody>
 							</table>
 							<?php if ( ! empty( $ereaders ) ) : ?>
-								<a href="" id="add-reader"><?php _e( 'Add another E-Reader', 'friends' ); ?></a>
+								<a href="" id="add-reader"><?php esc_html_e( 'Add another E-Reader', 'friends' ); ?></a>
 							<?php endif; ?>
 							<p class="description">
 								<?php
