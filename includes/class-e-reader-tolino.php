@@ -149,11 +149,11 @@ class E_Reader_Tolino extends E_Reader {
 		return new $class( $id, $data['name'], $data['reseller_id'], $data['refresh_token'], $data['hardware_id'], $data['access_token'], $data['expires'], $data['cookies'] );
 	}
 
-	public function send_posts( array $posts ) {
+	public function send_posts( array $posts, $title = null, $author = null ) {
 		if ( ! $this->access_token && ! $this->refresh_token ) {
 			return false;
 		}
-		$file = $this->generate_file( $posts[0] );
+		$file = $this->generate_file( $posts[0], $title, $author );
 
 		if ( ! file_exists( $file ) ) {
 			return false;

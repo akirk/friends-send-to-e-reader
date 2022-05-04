@@ -23,7 +23,7 @@ abstract class E_Reader {
 	abstract public function render_input();
 	abstract public static function render_template( $data = array() );
 	abstract public static function instantiate_from_field_data( $id, $data );
-	abstract public function send_posts( array $posts );
+	abstract public function send_posts( array $posts, $title = null, $author = null );
 
 	/**
 	 * Strip Emojis from text
@@ -99,9 +99,11 @@ abstract class E_Reader {
 		return $post->author_name;
 	}
 
-	protected function generate_file( array $posts ) {
+
+	protected function generate_file( array $posts, $title = null, $author = null ) {
 		$authors = array();
-		$this->ebook_title = false;
+		$this->ebook_title = $title;
+		$this->ebook_author = $author;
 
 		$dir = rtrim( sys_get_temp_dir(), '/' ) . '/friends_send_to_e_reader';
 		if ( ! file_exists( $dir ) ) {
@@ -119,18 +121,24 @@ abstract class E_Reader {
 			}
 		}
 
-		if ( count( $posts ) > 1 ) {
+		if ( count( $posts ) > 1 && ! $title ) {
 			// translators: %s is a post title. This is a title to be used when multiple posts are compiled to an ePub.
-			$this->ebook_title = sprintf( __( '%s and more', 'friends' ), $this->ebook_title );
+			$this->ebook_title = sprintf( __( '%s & more', 'friends' ), $this->ebook_title );
 		}
 
-		$filename = sanitize_title( substr( $this->strip_emojis( implode( '_', array_slice( $authors, 0, 5 ) ) ), 0, 40 ) . ' - ' . substr( $this->ebook_title, 0, 100 ) );
+		if ( ! $this->ebook_author ) {
+			$this->ebook_author = implode( ', ', $authors );
+		}
+		$this->ebook_title = $this->strip_emojis( $this->ebook_title );
+		$this->ebook_author = $this->strip_emojis( $this->ebook_author );
+
+		$filename = sanitize_title( substr( $this->ebook_author, 0, 40 ) . ' - ' . substr( $this->ebook_title, 0, 100 ) );
 		$url = home_url( '?' . implode( '-', array_map( 'intval', array_column( $posts, 'ID' ) ) ) );
 		$book = new \PHPePub\Core\EPub();
 
-		$book->setTitle( $this->ebook_title );
+		$book->setTitle( htmlspecialchars( $this->ebook_title ) );
 		$book->setIdentifier( $url, \PHPePub\Core\EPub::IDENTIFIER_URI );
-		$book->setAuthor( implode( ', ', $authors ), implode( ', ', $authors ) );
+		$book->setAuthor( htmlspecialchars( $this->ebook_author ), htmlspecialchars( $this->ebook_author ) );
 
 		$book->setSourceURL( $url );
 

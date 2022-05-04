@@ -75,12 +75,14 @@ class E_Reader_Generic_Email extends E_Reader {
 	/**
 	 * Send a post to the E-Reader reachable at the particular e-mail address.
 	 *
-	 * @param      array $posts    The posts.
+	 * @param      array  $posts    The posts.
+	 * @param      string $title   The title.
+	 * @param      string $author  The author.
 	 *
 	 * @return     bool     Whether it was sent successfully.
 	 */
-	public function send_posts( array $posts ) {
-		$file = $this->generate_file( $posts );
+	public function send_posts( array $posts, $title = null, $author = null ) {
+		$file = $this->generate_file( $posts, $title, $author );
 
 		if ( ! file_exists( $file ) ) {
 			return false;
