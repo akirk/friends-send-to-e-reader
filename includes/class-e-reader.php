@@ -57,11 +57,8 @@ abstract class E_Reader {
 	}
 
 	protected function get_content( $format, \WP_Post $post ) {
-		require_once __DIR__ . '/class-send-to-e-reader-template-loader.php';
-		$template_loader = new Send_To_E_Reader_Template_Loader();
-
 		ob_start();
-		$template_loader->get_template_part(
+		Friends::template_loader()->get_template_part(
 			$format . '/header',
 			null,
 			array(
@@ -73,7 +70,7 @@ abstract class E_Reader {
 
 		echo wp_kses_post( $post->post_content );
 
-		$template_loader->get_template_part(
+		Friends::template_loader()->get_template_part(
 			$format . '/footer',
 			null,
 			array(
@@ -142,9 +139,7 @@ abstract class E_Reader {
 
 		$book->setSourceURL( $url );
 
-		require_once __DIR__ . '/class-send-to-e-reader-template-loader.php';
-		$template_loader = new Send_To_E_Reader_Template_Loader();
-		$book->addCSSFile( 'style.css', 'css', file_get_contents( $template_loader->get_template_part( 'epub/style', null, array(), false ) ) );
+		$book->addCSSFile( 'style.css', 'css', file_get_contents( Friends::template_loader()->get_template_part( 'epub/style', null, array(), false ) ) );
 
 		foreach ( $posts as $post ) {
 			$content = $this->get_content( 'epub', $post );

@@ -49,6 +49,7 @@ class Send_To_E_Reader {
 		add_action( 'friends_notification_manager_row', array( $this, 'notification_manager_row' ) );
 		add_action( 'friends_notification_manager_after_form_submit', array( $this, 'notification_manager_after_form_submit' ) );
 		add_action( 'friends_entry_dropdown_menu', array( $this, 'entry_dropdown_menu' ) );
+		add_action( 'friends_template_paths', array( $this, 'friends_template_paths' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ), 50 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 40 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
@@ -125,10 +126,7 @@ class Send_To_E_Reader {
 			return;
 		}
 		if ( is_user_logged_in() && Friends::on_frontend() ) {
-			require_once __DIR__ . '/class-send-to-e-reader-template-loader.php';
-			$template_loader = new Send_To_E_Reader_Template_Loader();
-
-			$template_loader->get_template_part( 'dialog' );
+			Friends::template_loader()->get_template_part( 'dialog' );
 		}
 	}
 
@@ -208,6 +206,11 @@ class Send_To_E_Reader {
 				update_user_option( $friend_id, 'friends_send_to_e_reader', $ereader_notification );
 			}
 		}
+	}
+
+	public function friends_template_paths( $paths ) {
+		$paths[51] = FRIENDS_SEND_TO_E_READER_PLUGIN_DIR . 'templates/';
+		return $paths;
 	}
 
 	public function entry_dropdown_menu() {
