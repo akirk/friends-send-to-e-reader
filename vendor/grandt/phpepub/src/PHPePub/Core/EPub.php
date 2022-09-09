@@ -374,7 +374,7 @@ class EPub {
     public function extractIdAttributes($partName, $chapterData) {
         $item = $this->opf->getItemById($partName);
         $ids = $this->findIdAttributes($chapterData);
-        foreach ($ids as $id) {
+        if ($item) foreach ($ids as $id) {
             $item->addIndexPoint($id);
         }
     }

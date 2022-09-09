@@ -116,7 +116,7 @@ class Send_To_E_Reader {
 			return;
 		}
 		if ( is_user_logged_in() && Friends::on_frontend() ) {
-			wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array( 'friends' ), 1.0 );
+			wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array( 'friends' ), 1.1 );
 		}
 	}
 
@@ -141,10 +141,10 @@ class Send_To_E_Reader {
 
 	public function admin_menu() {
 		// Only show the menu if installed standalone.
-		$friends_settings_exist = '' !== menu_page_url( 'friends-settings', false );
+		$friends_settings_exist = '' !== menu_page_url( 'friends', false );
 		if ( $friends_settings_exist ) {
 			add_submenu_page(
-				'friends-settings',
+				'friends',
 				__( 'Send to E-Reader', 'friends' ),
 				__( 'Send to E-Reader', 'friends' ),
 				'administrator',
@@ -254,7 +254,12 @@ class Send_To_E_Reader {
 	function ajax_send() {
 		$ereaders = $this->get_ereaders();
 		if ( ! isset( $ereaders[ $_POST['ereader'] ] ) ) {
-			wp_send_json_error( 'error' );
+			wp_send_json_error( __( 'E-Reader not configured', 'friends' ) );
+			exit;
+		}
+		if ( empty( $_POST['ids'] ) ) {
+			wp_send_json_error( __( 'No post ids specified', 'friends' ) );
+			exit;
 		}
 		$ereader = $ereaders[ $_POST['ereader'] ];
 		$result = $ereader->send_posts(
@@ -264,6 +269,7 @@ class Send_To_E_Reader {
 		);
 		if ( ! $result || is_wp_error( $result ) ) {
 			wp_send_json_error( $result );
+			exit;
 		}
 		if ( $result instanceof E_Reader ) {
 			$this->update_ereader( $_POST['ereader'], $result );

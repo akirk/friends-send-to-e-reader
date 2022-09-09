@@ -32,26 +32,30 @@ jQuery( function( $ ) {
 				data: data,
 				beforeSend: function() {
 					search_indicator.addClass( 'form-icon loading' );
+					setTimeout( function() { $this.closest( 'div' ).find( 'a.friends-dropdown-toggle' ).focus(); }, 100 );
 				},
 				success: function( e ) {
 					search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-saved' );
 					if ( e.url ) {
 						location.href = e.url;
 					}
+				},
+				error: function( e ) {
+					search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-warning' ).prop( 'title', e );
 				}
 			} );
 		}
 
-		if ( data.ids.length > 1 ) {
+		if ( data.ids.length > 1 && dialog ) {
 			$( dialog ).find( 'h5' ).text( data.ids.length + ' posts selected' );
 			$( '#ebook-title' ).prop( 'placeholder', $.trim( $( '#post-' + data.ids[0] + ' h4.card-title' ).text().replace( /\s+/, ' ' ) ) + ' & more' );
 			$( '#ebook-author' ).prop( 'placeholder', $.trim( $.trim( $( '#post-' + data.ids[0] + ' div.author' ).text().replace( /\s+/, ' ' ) ) + ' et al' ) );
 			dialog.showModal();
-			$( dialog ).on( '.close', 'click', function() {
+			$( document ).on( 'click', 'dialog .close', function() {
 				dialog.close();
 				return false;
 			} );
-			$( dialog ).find( 'button[name=ok]' ).on( 'click', function() {
+			$( document ).on( 'click', 'dialog button[name=ok]', function() {
 				if ( $( '#ebook-title' ).val() ) {
 					data.title = $( '#ebook-title' ).val();
 				}
