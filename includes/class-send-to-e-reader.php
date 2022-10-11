@@ -54,6 +54,7 @@ class Send_To_E_Reader {
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_action( 'wp_footer', array( $this, 'print_dialog' ) );
 		add_action( 'wp_ajax_send-post-to-e-reader', array( $this, 'ajax_send' ) );
+		add_action( 'friends_author_header', array( $this, 'friends_author_header' ), 10, 2 );
 	}
 
 	public function register_ereader( $ereader_class ) {
@@ -543,4 +544,18 @@ class Send_To_E_Reader {
 			$ereaders[ $id ]->send_posts( array( $post ), $ereaders[ $id ]['email'] );
 		}
 	}
+
+	public function friends_author_header( User $friend_user, $args ) {
+		Friends::template_loader()->get_template_part(
+			'frontend/ereader/author-header',
+			null,
+			array_merge(
+				array(
+					'ereaders' => $this->get_ereaders(),
+				),
+				$args
+			)
+		);
+	}
+
 }
