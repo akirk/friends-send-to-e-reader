@@ -25,6 +25,8 @@ class Send_To_E_Reader {
 	 */
 	private $friends;
 
+	const POST_META = 'friends-sent-to-ereader';
+
 	private $ereaders = null;
 	private $ereader_classes = array();
 
@@ -215,6 +217,10 @@ class Send_To_E_Reader {
 
 	public function entry_dropdown_menu() {
 		$divider = '<li class="divider" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
+		$already_sent = get_post_meta( get_the_ID(), self::POST_META );
+		if ( $already_sent ) {
+			$divider = '<li class="divider" data-content="' . esc_attr( sprintf( __( 'E-Reader: Sent on %s', 'friends' ), date_i18n( __( 'M j' ) ) ) ) . '"></li>';
+		}
 		$ereaders = $this->get_ereaders();
 		foreach ( $ereaders as $id => $ereader ) {
 			echo wp_kses(
@@ -264,9 +270,10 @@ class Send_To_E_Reader {
 			wp_send_json_error( __( 'No post ids specified', 'friends' ) );
 			exit;
 		}
+		$posts = array_map( 'get_post', (array) $_POST['ids'] );
 		$ereader = $ereaders[ $_POST['ereader'] ];
 		$result = $ereader->send_posts(
-			array_map( 'get_post', (array) $_POST['ids'] ),
+			$posts,
 			empty( $_POST['title'] ) ? false : $_POST['title'],
 			empty( $_POST['author'] ) ? false : $_POST['author']
 		);
@@ -274,6 +281,10 @@ class Send_To_E_Reader {
 			wp_send_json_error( $result );
 			exit;
 		}
+		foreach ( $posts as $post ) {
+			update_post_meta( $post->ID, self::POST_META, time() );
+		}
+
 		if ( $result instanceof E_Reader ) {
 			$this->update_ereader( $_POST['ereader'], $result );
 		}
