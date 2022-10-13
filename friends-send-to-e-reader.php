@@ -19,6 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 define( 'FRIENDS_SEND_TO_E_READER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'FRIENDS_SEND_TO_E_READER_VERSION', 0.5);
 
 require 'vendor/autoload.php';
 require_once __DIR__ . '/includes/class-send-to-e-reader.php';

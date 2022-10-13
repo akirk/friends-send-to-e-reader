@@ -120,7 +120,10 @@ class Send_To_E_Reader {
 			return;
 		}
 		if ( is_user_logged_in() && Friends::on_frontend() ) {
-			wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array( 'friends' ), 1.1 );
+			$handle = 'friends-send-to-e-reader';
+			$file = 'friends-send-to-e-reader.js';
+			$version = FRIENDS_SEND_TO_E_READER_VERSION;
+			wp_enqueue_script( $handle, plugins_url( $file, __DIR__ ), array( 'friends' ), apply_filters( 'friends_debug_enqueue', $version, $handle, dirname( __DIR__ ) . '/' . $file ) );
 		}
 	}
 
@@ -129,7 +132,7 @@ class Send_To_E_Reader {
 			return;
 		}
 		if ( is_user_logged_in() && Friends::on_frontend() ) {
-			Friends::template_loader()->get_template_part( 'dialog' );
+			Friends::template_loader()->get_template_part( 'frontend/ereader/dialog' );
 		}
 	}
 
@@ -137,7 +140,10 @@ class Send_To_E_Reader {
 		if ( ! class_exists( 'Friends\Friends' ) ) {
 			return;
 		}
-		wp_enqueue_script( 'friends-send-to-e-reader', plugins_url( 'friends-send-to-e-reader.js', __DIR__ ), array(), 1.0 );
+		$handle = 'friends-send-to-e-reader';
+		$file = 'friends-send-to-e-reader.js';
+		$version = FRIENDS_SEND_TO_E_READER_VERSION;
+			wp_enqueue_script( $handle, plugins_url( $file, __DIR__ ), array( 'friends-admin' ), apply_filters( 'friends_debug_enqueue', $version, $handle, dirname( __DIR__ ) . '/' . $file ) );
 	}
 
 	public function admin_menu() {
@@ -212,7 +218,12 @@ class Send_To_E_Reader {
 	}
 
 	public function friends_template_paths( $paths ) {
-		$paths[51] = FRIENDS_SEND_TO_E_READER_PLUGIN_DIR . 'templates/';
+		$c = 50;
+		$my_path = FRIENDS_SEND_TO_E_READER_PLUGIN_DIR . 'templates/';
+		while ( isset( $paths[$c] ) && $my_path !== $paths[$c] ) {
+			$c += 1;
+		}
+		$paths[$c] = $my_path;
 		return $paths;
 	}
 
@@ -258,6 +269,11 @@ class Send_To_E_Reader {
 				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all posts above', 'friends' ); ?>
 			</label>
 		</li>
+		<li class="menu-item">
+			<label class="form-switch">
+				<input type="checkbox" name="multi-entry" checked="checked"><i class="form-icon on"></i> <?php esc_html_e( 'Create a reading summary post', 'friends' ); ?>
+			</label>
+		</li>
 		<?php
 	}
 
@@ -282,9 +298,34 @@ class Send_To_E_Reader {
 			wp_send_json_error( $result );
 			exit;
 		}
+		$post_content = array();
 		foreach ( $posts as $post ) {
 			update_post_meta( $post->ID, self::POST_META, time() );
+
+			$content  = '<!-- wp:heading {"level":4} -->' . PHP_EOL . '<h4><a href="' . esc_url( get_the_permalink( $post ) ) . '">';
+
+			$content .= wp_kses_post( get_the_title( $post) );
+			$content .= '</a></h4>' . PHP_EOL;
+			$content .= '<!-- /wp:heading -->';
+			$content .= '<!-- wp:quote -->' . PHP_EOL . '<blockquote class="wp-block-quote"><p>' . wp_kses_post( get_the_excerpt( $post ) );
+			$content .= '</p></blockquote>' . PHP_EOL;
+			$content .= '<!-- /wp:quote -->';
+			$content .= '<!-- wp:paragraph -->' . PHP_EOL . '<p>';
+			$content .= apply_filters( 'friends_send_to_ereader_reading_list_paragraph', '', $post );
+			$content .= '</p>' . PHP_EOL;
+			$content .= '<!-- /wp:paragraph -->';
+			$post_content[] = $content;
 		}
+
+		wp_insert_post( array(
+			'post_title' => sprintf(
+				// translators: %s is a date.
+				__( 'Reading List of %s', 'friends' ),
+				date_i18n( __( 'F j, Y' ) )
+			),
+			'post_status' => 'draft',
+			'post_content' => implode( PHP_EOL, $post_content ),
+		) );
 
 		if ( $result instanceof E_Reader ) {
 			$this->update_ereader( $_POST['ereader'], $result );
