@@ -19,9 +19,9 @@
 
 defined( 'ABSPATH' ) || exit;
 define( 'FRIENDS_SEND_TO_E_READER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'FRIENDS_SEND_TO_E_READER_VERSION', 0.5);
+define( 'FRIENDS_SEND_TO_E_READER_VERSION', 0.5 );
 
-require 'vendor/autoload.php';
+require 'libs/autoload.php';
 require_once __DIR__ . '/includes/class-send-to-e-reader.php';
 require_once __DIR__ . '/includes/class-e-reader.php';
 
@@ -40,11 +40,13 @@ add_action(
 		require_once __DIR__ . '/includes/class-e-reader-pocketbook.php';
 		$send_to_e_reader->register_ereader( 'Friends\E_Reader_Pocketbook' );
 
-		// require_once __DIR__ . '/includes/class-e-reader-tolino.php';
-		// $send_to_e_reader->register_ereader( 'Friends\E_Reader_Tolino' );
+		/*
+		Not ready.
+		require_once __DIR__ . '/includes/class-e-reader-tolino.php';
+		$send_to_e_reader->register_ereader( 'Friends\E_Reader_Tolino' );
+		*/
 
 		require_once __DIR__ . '/includes/class-e-reader-download.php';
 		$send_to_e_reader->register_ereader( 'Friends\E_Reader_Download' );
 	}
 );
-

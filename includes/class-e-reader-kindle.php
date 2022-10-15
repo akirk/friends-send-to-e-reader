@@ -40,7 +40,7 @@ class E_Reader_Kindle extends E_Reader_Generic_Email {
 
 		$filename = sanitize_title( $this->strip_emojis( $post->author_name . ' - ' . $post->post_title ) );
 
-		require_once __DIR__ . '/../MOBIClass/MOBI.php';
+		require_once __DIR__ . '/../libs/MOBIClass/MOBI.php';
 		$mobi = new \MOBI();
 
 		$mobi_content = new \OnlineArticle( $url, $content );
