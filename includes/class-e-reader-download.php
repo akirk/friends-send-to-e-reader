@@ -94,7 +94,7 @@ class E_Reader_Download extends E_Reader {
 			return false;
 		}
 
-		return array( 'url' => $results['url'] );
+		return array( 'url' => $results['url'], 'title' => $this->ebook_title, 'author' => $this->ebook_author );
 	}
 
 }

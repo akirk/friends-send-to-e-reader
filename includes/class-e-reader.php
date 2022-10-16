@@ -19,6 +19,8 @@ namespace Friends;
  */
 abstract class E_Reader {
 	protected $ebook_title;
+	protected $ebook_author;
+	public $active;
 	abstract public function get_id();
 	abstract public function render_input();
 	abstract public static function render_template( $data = array() );

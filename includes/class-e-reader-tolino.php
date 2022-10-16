@@ -221,7 +221,7 @@ class E_Reader_Tolino extends E_Reader {
 			)
 		);
 
-		if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return false;
 		}
 

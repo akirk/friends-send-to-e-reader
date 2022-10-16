@@ -27,6 +27,10 @@ jQuery( function( $ ) {
 			} );
 		}
 
+		if ( $this.closest( 'ul' ).find( 'li.menu-item input[name=reading-summary]' ).is( ':checked' ) ) {
+			data.reading_summary = 1;
+		}
+
 		var send = function( data ) {
 			wp.ajax.send( 'send-post-to-e-reader', {
 				data: data,

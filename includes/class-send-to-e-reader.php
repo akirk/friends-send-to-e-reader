@@ -26,6 +26,9 @@ class Send_To_E_Reader {
 	private $friends;
 
 	const POST_META = 'friends-sent-to-ereader';
+	const EREADERS_OPTION = 'friends-send-to-e-reader_readers';
+	const READING_SUMMARY_OPTION = 'friends-send-to-e-reader_reading-summary';
+	const CRON_OPTION = 'friends-send-to-e-reader_cron';
 
 	private $ereaders = null;
 	private $ereader_classes = array();
@@ -45,8 +48,9 @@ class Send_To_E_Reader {
 	 */
 	private function register_hooks() {
 		add_filter( 'notify_new_friend_post', array( $this, 'post_notification' ), 10 );
-		add_action( 'friends_edit_friend_table_end', array( $this, 'edit_friend' ), 10 );
-		add_action( 'friends_edit_friend_after_form_submit', array( $this, 'edit_friend_submit' ), 10 );
+		add_action( 'friends_edit_friend_notifications_table_end', array( $this, 'edit_friend_notifications' ), 10 );
+		add_action( 'users_edit_post_collection_table_end', array( $this, 'users_edit_post_collection' ), 10 );
+		add_action( 'friends_edit_friend_notifications_after_form_submit', array( $this, 'edit_friend_notifications_submit' ), 10 );
 		add_action( 'friends_notification_manager_header', array( $this, 'notification_manager_header' ) );
 		add_action( 'friends_notification_manager_row', array( $this, 'notification_manager_row' ) );
 		add_action( 'friends_notification_manager_after_form_submit', array( $this, 'notification_manager_after_form_submit' ) );
@@ -64,17 +68,35 @@ class Send_To_E_Reader {
 		$this->ereader_classes[ $ereader_class ] = $ereader_class;
 	}
 
+	protected function get_active_ereaders() {
+		return array_filter(
+			$this->get_ereaders(),
+			function ( $ereader ) {
+				return $ereader->active;
+			}
+		);
+	}
+
+	protected function get_active_email_ereaders() {
+		return array_filter(
+			$this->get_active_ereaders(),
+			function ( $ereader ) {
+				return $ereader instanceof E_Reader_Generic_Email;
+			}
+		);
+	}
+
 	protected function get_ereaders() {
 		if ( is_null( $this->ereaders ) ) {
 			$this->ereaders = array();
-			foreach ( get_option( 'friends-send-to-e-reader_readers', array() ) as $id => $ereader ) {
+			foreach ( get_option( self::EREADERS_OPTION, array() ) as $id => $ereader ) {
 				if ( get_class( $ereader ) === '__PHP_Incomplete_Class' ) {
 					// We need to update these to new class names.
 					$this->ereaders = null;
 					$alloptions = wp_load_alloptions();
-					if ( isset( $alloptions['friends-send-to-e-reader_readers'] ) ) {
-						$alloptions['friends-send-to-e-reader_readers'] = str_replace( 'Friends_', 'Friends\\', $alloptions['friends-send-to-e-reader_readers'] );
-						$this->update_ereaders( unserialize( $alloptions['friends-send-to-e-reader_readers'] ) );
+					if ( isset( $alloptions[ self::EREADERS_OPTION ] ) ) {
+						$alloptions[ self::EREADERS_OPTION ] = str_replace( 'Friends_', 'Friends\\', $alloptions[ self::EREADERS_OPTION ] );
+						$this->update_ereaders( unserialize( $alloptions[ self::EREADERS_OPTION ] ) );
 						return $this->get_ereaders();
 					}
 				}
@@ -99,7 +121,7 @@ class Send_To_E_Reader {
 
 	protected function update_ereaders( $ereaders ) {
 		$this->ereaders = $ereaders;
-		return update_option( 'friends-send-to-e-reader_readers', $ereaders );
+		return update_option( self::EREADERS_OPTION, $ereaders );
 	}
 
 	protected function update_ereader( $id, $ereader ) {
@@ -152,11 +174,19 @@ class Send_To_E_Reader {
 		if ( $friends_settings_exist ) {
 			add_submenu_page(
 				'friends',
-				__( 'Send to E-Reader', 'friends' ),
-				__( 'Send to E-Reader', 'friends' ),
+				__( 'E-Readers', 'friends' ),
+				__( 'E-Readers', 'friends' ),
 				'administrator',
 				'friends-send-to-e-reader',
-				array( $this, 'about_page' )
+				array( $this, 'configure_ereaders' )
+			);
+			add_submenu_page(
+				'friends',
+				__( 'E-Reader Settings', 'friends' ),
+				__( 'E-Reader Settings', 'friends' ),
+				'administrator',
+				'friends-send-to-e-reader-settings',
+				array( $this, 'settings' )
 			);
 		} else {
 			add_menu_page( 'friends', __( 'Friends', 'friends' ), 'administrator', 'friends-send-to-e-reader', null, 'dashicons-groups', 3 );
@@ -166,7 +196,7 @@ class Send_To_E_Reader {
 				__( 'About', 'friends' ),
 				'administrator',
 				'friends-send-to-e-reader',
-				array( $this, 'about_page_with_friends_about' )
+				array( $this, 'configure_ereaders_with_friends_about' )
 			);
 		}
 	}
@@ -220,20 +250,41 @@ class Send_To_E_Reader {
 	public function friends_template_paths( $paths ) {
 		$c = 50;
 		$my_path = FRIENDS_SEND_TO_E_READER_PLUGIN_DIR . 'templates/';
-		while ( isset( $paths[$c] ) && $my_path !== $paths[$c] ) {
+		while ( isset( $paths[ $c ] ) && $my_path !== $paths[ $c ] ) {
 			$c += 1;
 		}
-		$paths[$c] = $my_path;
+		$paths[ $c ] = $my_path;
 		return $paths;
+	}
+
+	public function get_unsent_posts() {
+		global $wp_query;
+		$query = new \WP_Query(
+			array_merge(
+				$wp_query->query_vars,
+				array(
+					'nopaging'     => true,
+					'meta_key'     => self::POST_META,
+					'meta_compare' => 'NOT EXISTS',
+				)
+			)
+		);
+		return $query->get_posts();
 	}
 
 	public function entry_dropdown_menu() {
 		$divider = '<li class="divider" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
 		$already_sent = get_post_meta( get_the_ID(), self::POST_META );
 		if ( $already_sent ) {
-			$divider = '<li class="divider" data-content="' . esc_attr( sprintf( __( 'E-Reader: Sent on %s', 'friends' ), date_i18n( __( 'M j' ) ) ) ) . '"></li>';
+			$divider = '<li class="divider" data-content="' . esc_attr(
+				sprintf(
+					// translators: %s is a date.
+					__( 'E-Reader: Sent on %s', 'friends' ),
+					date_i18n( __( 'M j' ) ) // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+				)
+			) . '"></li>';
 		}
-		$ereaders = $this->get_ereaders();
+		$ereaders = $this->get_active_ereaders();
 		foreach ( $ereaders as $id => $ereader ) {
 			echo wp_kses(
 				$divider,
@@ -269,12 +320,16 @@ class Send_To_E_Reader {
 				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all posts above', 'friends' ); ?>
 			</label>
 		</li>
-		<li class="menu-item">
-			<label class="form-switch">
-				<input type="checkbox" name="multi-entry" checked="checked"><i class="form-icon on"></i> <?php esc_html_e( 'Create a reading summary post', 'friends' ); ?>
-			</label>
-		</li>
 		<?php
+		if ( $this->reading_summary_enabled() ) {
+			?>
+			<li class="menu-item">
+				<label class="form-switch">
+					<input type="checkbox" name="reading-summary" checked="checked"><i class="form-icon on"></i> <?php esc_html_e( 'Create a reading summary draft', 'friends' ); ?>
+				</label>
+			</li>
+			<?php
+		}
 	}
 
 	function ajax_send() {
@@ -298,34 +353,9 @@ class Send_To_E_Reader {
 			wp_send_json_error( $result );
 			exit;
 		}
-		$post_content = array();
-		foreach ( $posts as $post ) {
-			update_post_meta( $post->ID, self::POST_META, time() );
-
-			$content  = '<!-- wp:heading {"level":4} -->' . PHP_EOL . '<h4><a href="' . esc_url( get_the_permalink( $post ) ) . '">';
-
-			$content .= wp_kses_post( get_the_title( $post) );
-			$content .= '</a></h4>' . PHP_EOL;
-			$content .= '<!-- /wp:heading -->';
-			$content .= '<!-- wp:quote -->' . PHP_EOL . '<blockquote class="wp-block-quote"><p>' . wp_kses_post( get_the_excerpt( $post ) );
-			$content .= '</p></blockquote>' . PHP_EOL;
-			$content .= '<!-- /wp:quote -->';
-			$content .= '<!-- wp:paragraph -->' . PHP_EOL . '<p>';
-			$content .= apply_filters( 'friends_send_to_ereader_reading_list_paragraph', '', $post );
-			$content .= '</p>' . PHP_EOL;
-			$content .= '<!-- /wp:paragraph -->';
-			$post_content[] = $content;
+		if ( isset( $_POST['reading_summary'] ) && $_POST['reading_summary'] && is_array( $result ) ) {
+			$this->create_reading_summary( $posts, $result['title'], $result['author'] );
 		}
-
-		wp_insert_post( array(
-			'post_title' => sprintf(
-				// translators: %s is a date.
-				__( 'Reading List of %s', 'friends' ),
-				date_i18n( __( 'F j, Y' ) )
-			),
-			'post_status' => 'draft',
-			'post_content' => implode( PHP_EOL, $post_content ),
-		) );
 
 		if ( $result instanceof E_Reader ) {
 			$this->update_ereader( $_POST['ereader'], $result );
@@ -334,11 +364,123 @@ class Send_To_E_Reader {
 	}
 
 	/**
-	 * Display an about page for the plugin.
+	 * Display the E-Reader Settings header
+	 *
+	 * @param      string $active  The active page.
+	 */
+	private function settings_header( $active ) {
+		Friends::template_loader()->get_template_part(
+			'admin/settings-header',
+			null,
+			array(
+				'active' => $active,
+				'title'  => __( 'Send to E-Reader', 'friends' ),
+				'menu'   => array(
+					'E-Readers' => 'friends-send-to-e-reader',
+					'Settings'  => 'friends-send-to-e-reader-settings',
+				),
+			)
+		);
+	}
+
+	protected function create_reading_summary( $posts, $title, $author ) {
+		$post_content = array();
+		foreach ( $posts as $post ) {
+			update_post_meta( $post->ID, self::POST_META, time() );
+
+			$content = '<!-- wp:heading {"level":4} -->' . PHP_EOL . '<h4><a href="' . esc_url( get_the_permalink( $post ) ) . '">';
+
+			$content .= wp_kses_post( get_the_title( $post ) );
+			$content .= '</a></h4>' . PHP_EOL;
+			$content .= '<!-- /wp:heading -->';
+			$content .= '<!-- wp:quote -->' . PHP_EOL . '<blockquote class="wp-block-quote"><p>' . wp_kses_post( get_the_excerpt( $post ) );
+			$content .= '</p></blockquote>' . PHP_EOL;
+			$content .= '<!-- /wp:quote -->';
+			$content .= '<!-- wp:paragraph -->' . PHP_EOL . '<p>';
+			$content .= apply_filters( 'friends_send_to_ereader_reading_summary_paragraph_content', '', $post );
+			$content .= '</p>' . PHP_EOL;
+			$content .= '<!-- /wp:paragraph -->';
+			$post_content[] = apply_filters( 'friends_send_to_e_reader_summary_entry', $content, $post );
+		}
+
+		$replace = array(
+			'$date' => date_i18n( __( 'F j, Y' ) ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+			'$author' => $author,
+			'$title' => $title,
+		);
+		wp_insert_post(
+			array(
+				'post_title'   => str_replace(
+					array_keys( $replace ),
+					array_values( $replace ),
+					$this->reading_summary_title()
+
+				),
+				'post_status'  => 'draft',
+				'post_content' => implode( PHP_EOL, $post_content ),
+			)
+		);
+	}
+
+	/**
+	 * Whether the Reading Summary is enabled.
+	 */
+	protected function reading_summary_enabled() {
+		$summary = get_option( self::READING_SUMMARY_OPTION, array() );
+		return isset( $summary['enabled'] ) && $summary['enabled'];
+	}
+
+	/**
+	 * Whether the Reading Summary is enabled.
+	 */
+	protected function reading_summary_title() {
+		$summary = get_option( self::READING_SUMMARY_OPTION, array() );
+		return ! empty( $summary['title'] ) ? $summary['title'] : sprintf(
+			// translators: %s is a date.
+			__( 'Reading List of %s', 'friends' ),
+			'$date'
+		);
+	}
+
+	/**
+	 * Display the configure e-readers page for the plugin.
+	 */
+	public function settings() {
+		$nonce_value = 'friends-send-to-e-reader';
+
+		if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], $nonce_value ) ) {
+			$summary = array();
+
+			$summary['enabled'] = isset( $_POST['reading_summary'] ) && $_POST['reading_summary'];
+			$summary['title'] = sanitize_text_field( wp_unslash( $_POST['reading_summary_title'] ) );
+
+			update_option( self::READING_SUMMARY_OPTION, $summary );
+		}
+		$summary = get_option( self::READING_SUMMARY_OPTION, array() );
+
+		$this->settings_header( 'friends-send-to-e-reader-settings' );
+
+		Friends::template_loader()->get_template_part(
+			'admin/ereader-settings',
+			null,
+			array(
+				'nonce_value'           => $nonce_value,
+				'reading_summary'       => $this->reading_summary_enabled(),
+				'reading_summary_title' => $this->reading_summary_title(),
+				// 'cron_day' => $this->cron_day(),
+				// 'cron_ereader' => $this->cron_ereader(),
+			)
+		);
+
+		Friends::template_loader()->get_template_part( 'admin/settings-footer' );
+	}
+
+	/**
+	 * Display the configure e-readers page for the plugin.
 	 *
 	 * @param      bool $display_about_friends  The display about friends section.
 	 */
-	public function about_page( $display_about_friends = false ) {
+	public function configure_ereaders( $display_about_friends = false ) {
 		$ereaders = $this->get_ereaders();
 
 		$friends = Friends::get_instance();
@@ -368,6 +510,7 @@ class Send_To_E_Reader {
 				if ( isset( $ereaders[ $id ] ) ) {
 					unset( $delete_ereaders[ $id ] );
 				}
+				$ereader->active = isset( $ereader_data['active'] ) && $ereader_data['active'];
 				$ereaders[ $id ] = $ereader;
 			}
 			foreach ( $delete_ereaders as $id => $ereader ) {
@@ -382,156 +525,29 @@ class Send_To_E_Reader {
 
 			$this->update_ereaders( $ereaders );
 		}
-		$save_changes = __( 'Save Changes', 'friends' );
 
-		?>
-		<h1><?php esc_html_e( 'Friends Send to E-Reader', 'friends' ); ?></h1>
+		$this->settings_header( 'friends-send-to-e-reader' );
 
-		<form method="post">
-			<?php wp_nonce_field( $nonce_value ); ?>
-			<table class="form-table">
-				<tbody>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Your E-Readers', 'friends' ); ?></th>
-						<td>
-							<table class="reader-table">
-								<thead>
-									<tr>
-										<th><?php esc_html_e( 'E-Reader Type', 'friends' ); ?></th>
-										<th><?php esc_html_e( 'Name', 'friends' ); ?></th>
-										<th><?php esc_html_e( 'E-Mail address', 'friends' ); ?></th>
-									</tr>
-								</thead>
-								<tbody>
-								<?php
-								foreach ( $ereaders as $id => $ereader ) :
-									$delete_text = sprintf(
-										// translators: %1$s is the button named "delete", %2$s is the user given name of an e-reader.
-										__( 'Click %1$s to really delete the reader %2$s.', 'friends' ),
-										'<em>' . esc_html( $save_changes ) . '</em>',
-										'<em>' . esc_html( $ereader->get_name() ) . '</em>'
-									);
-									?>
-									<tr>
-										<td><input type="hidden" name="ereaders[<?php echo esc_attr( $id ); ?>][class]" value="<?php echo esc_attr( get_class( $ereader ) ); ?>" /><?php echo esc_html( $ereader::NAME ); ?> </td>
-										<td><input type="text" class="name" name="ereaders[<?php echo esc_attr( $id ); ?>][name]" value="<?php echo esc_attr( $ereader->get_name() ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader Name', 'friends' ); ?>" /></td>
-										<td><?php $ereader->render_input(); ?></td>
-										<td><a href="" class="delete-reader" data-delete-text="<?php echo wp_kses( $delete_text, array( 'em' => array() ) ); ?>"><?php esc_html_e( 'delete' ); /* phpcs:ignore WordPress.WP.I18n.MissingArgDomain */ ?></a></td>
-									</tr>
-								<?php endforeach; ?>
-								<tr class="template<?php echo empty( $ereaders ) ? '' : ' hidden'; ?>">
-									<td>
-										<select name="ereaders[new][class]" id="ereader-class">
-											<option  disabled selected hidden><?php esc_html_e( 'Select your E-Reader', 'friends' ); ?></option>
-											<?php foreach ( $this->ereader_classes as $ereader_class ) : ?>
-												<option value="<?php echo esc_attr( $ereader_class ); ?>"><?php echo esc_html( $ereader_class::NAME ); ?></option>
-											<?php endforeach; ?>
-										</select>
-									</td>
-									<td><input type="text" class="name" name="ereaders[new][name]" placeholder="<?php echo esc_attr__( 'Name', 'friends' ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader Name', 'friends' ); ?>" /></td>
-									<td>
-										<?php foreach ( $this->ereader_classes as $ereader_class ) : ?>
-											<div id="<?php echo esc_html( $ereader_class ); ?>" class="hidden">
-												<?php $ereader_class::render_template(); ?>
-											</div>
-										<?php endforeach; ?>
-									</td>
-								</tr>
-								</tbody>
-							</table>
-							<?php if ( ! empty( $ereaders ) ) : ?>
-								<a href="" id="add-reader"><?php esc_html_e( 'Add another E-Reader', 'friends' ); ?></a>
-							<?php endif; ?>
-							<p class="description">
-								<?php
-								echo __( 'Some E-Readers offer wireless delivery via an e-mail address which you\'ll first need to create.', 'friends' );
-								?>
-							</p>
-							<p class="description">
-								<?php
-								echo wp_kses(
-									sprintf(
-										// translators: %1$s and %2$s are URLs.
-										__( 'Examples include Kindle (@free.kindle.com, <a href="%1$s">Instructions</a>) or Pocketbook (@pbsync.com, <a href="%2$s">Instructions</a>).', 'friends' ),
-										'https://help.fivefilters.org/push-to-kindle/email-address.html" target="_blank" rel="noopener noreferrer',
-										'https://sync.pocketbook-int.com/files/s2pb_info_en.pdf" target="_blank" rel="noopener noreferrer'
-									),
-									array(
-										'a' => array(
-											'href'   => array(),
-											'rel'    => array(),
-											'target' => array(),
-										),
-									)
-								);
-								echo '<br/>';
-
-								echo esc_html(
-									sprintf(
-										// translators: %s is an e-mail address.
-										__( 'Make sure that you whitelist the e-mail address which the friend plugin sends its e-mails from: %s', 'friends' ),
-										$friends->notifications->get_friends_plugin_from_email_address()
-									)
-								);
-
-								?>
-							</p>
-							<p class="description">
-								<?php
-								esc_html_e( 'Theoretically you can enter any e-mail address.', 'friends' );
-								echo ' ';
-								esc_html_e( 'By default the plugin will send an e-mail with an ePub file attached.', 'friends' );
-								?>
-								</p>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			<p class="submit">
-				<input type="submit" id="submit" class="button button-primary" value="<?php echo esc_html( $save_changes ); ?>">
-			</p>
-		</form>
-
-		<?php if ( $display_about_friends ) : ?>
-			<p>
-				<?php
-				echo wp_kses(
-					// translators: %s: URL to the Friends Plugin page on WordPress.org.
-					sprintf( __( 'The Friends plugin is all about connecting with friends and news. Learn more on its <a href=%s>plugin page on WordPress.org</a>.', 'friends' ), '"https://wordpress.org/plugins/friends" target="_blank" rel="noopener noreferrer"' ),
-					array(
-						'a' => array(
-							'href'   => array(),
-							'rel'    => array(),
-							'target' => array(),
-						),
-					)
-				);
-				?>
-			</p>
-		<?php endif; ?>
-		<p>
-		<?php
-		echo wp_kses(
-			// translators: %s: URL to the Embed library.
-			sprintf( __( 'This plugin is largely powered by the open source project <a href=%s>PHPePub</a>.', 'friends' ), '"https://github.com/Grandt/PHPePub" target="_blank" rel="noopener noreferrer"' ),
+		Friends::template_loader()->get_template_part(
+			'admin/configure-ereaders',
+			null,
 			array(
-				'a' => array(
-					'href'   => array(),
-					'rel'    => array(),
-					'target' => array(),
-				),
+				'ereaders'              => $ereaders,
+				'nonce_value'           => $nonce_value,
+				'friends'               => $friends,
+				'display_about_friends' => $display_about_friends,
+				'ereader_classes'       => $this->ereader_classes,
 			)
 		);
-		?>
-		</p>
-		<?php
+
+		Friends::template_loader()->get_template_part( 'admin/settings-footer' );
 	}
 
 	/**
 	 * Display an about page for the plugin with the friends section.
 	 */
-	public function about_page_with_friends_about() {
-		return $this->about_page( true );
+	public function configure_ereaders_with_friends_about() {
+		return $this->configure_ereaders( true );
 	}
 
 	/**
@@ -539,40 +555,37 @@ class Send_To_E_Reader {
 	 *
 	 * @param      User $friend  The friend.
 	 */
-	function edit_friend( User $friend ) {
-		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
-		$selected = get_user_option( 'friends_send_to_e_reader', $friend->ID );
-		?>
-	<tr>
-		<th scope="row"><?php esc_html_e( 'Send to new posts to E-Reader', 'friends' ); ?></th>
-		<td>
-			<?php if ( ! empty( $ereaders ) ) : ?>
-			<select name="send-to-e-reader">
-				<option value="none"><?php esc_html_e( "Don't send a notification", 'friends' ); ?></option>
-				<?php foreach ( $ereaders as $id => $ereader ) : ?>
-					<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $selected, $id ); ?>><?php echo esc_html( $ereader->get_name() ); ?></option>
-				<?php endforeach; ?>
-				</select>
-			<?php endif; ?>
+	function users_edit_post_collection( User $friend ) {
+		Friends::template_loader()->get_template_part(
+			'admin/automatic-sending',
+			null,
+			array(
+				'ereaders' => $this->get_active_email_ereaders(),
+			)
+		);
+	}
 
-			<p class="description">
-				<?php
-				if ( empty( $ereaders ) ) {
-					echo wp_kses(
-						sprintf(
-							// translators: %s is an URL.
-							__( 'You have not yet entered any e-readers. Go to the <a href=%s>Send to E-Reader settings</a> to add one.', 'friends' ),
-							'"' . self_admin_url( 'admin.php?page=friends-send-to-e-reader' ) . '"'
-						),
-						array( 'a' => array( 'href' => array() ) )
-					);
-				} else {
-				}
-				?>
-				</p>
-		</td>
-	</tr>
-		<?php
+	/**
+	 * Display an input field to enter the e-reader e-mail address.
+	 *
+	 * @param      User $friend  The friend.
+	 */
+	function edit_friend_notifications( User $friend ) {
+		Friends::template_loader()->get_template_part(
+			'admin/edit-notifications-ereader',
+			null,
+			array(
+				'ereaders' => $this->get_active_email_ereaders(),
+				'selected' => get_user_option( 'friends_send_to_e_reader', $friend->ID ),
+			)
+		);
+		Friends::template_loader()->get_template_part(
+			'admin/automatic-sending',
+			null,
+			array(
+				'ereaders' => $this->get_active_email_ereaders(),
+			)
+		);
 	}
 
 	/**
@@ -580,8 +593,8 @@ class Send_To_E_Reader {
 	 *
 	 * @param      User $friend  The friend.
 	 */
-	function edit_friend_submit( User $friend ) {
-		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
+	function edit_friend_notifications_submit( User $friend ) {
+		$ereaders = get_option( self::EREADERS_OPTION, array() );
 		if ( isset( $_POST['send-to-e-reader'] ) && isset( $ereaders[ $_POST['send-to-e-reader'] ] ) ) {
 			update_user_option( $friend->ID, 'friends_send_to_e_reader', $_POST['send-to-e-reader'] );
 		} else {
@@ -599,7 +612,7 @@ class Send_To_E_Reader {
 			return;
 		}
 
-		$ereaders = get_option( 'friends-send-to-e-reader_readers', array() );
+		$ereaders = get_option( self::EREADERS_OPTION, array() );
 		$id = get_user_option( 'friends_send_to_e_reader', $post->post_author );
 		if ( false !== $id && isset( $ereaders[ $id ] ) ) {
 			$ereaders[ $id ]->send_posts( array( $post ), $ereaders[ $id ]['email'] );
@@ -612,7 +625,9 @@ class Send_To_E_Reader {
 			null,
 			array_merge(
 				array(
-					'ereaders' => $this->get_ereaders(),
+					'ereaders'     => $this->get_active_ereaders(),
+					'unsent_posts' => $this->get_unsent_posts(),
+					'friend'       => $friend_user,
 				),
 				$args
 			)
