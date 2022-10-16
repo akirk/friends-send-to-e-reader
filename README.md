@@ -17,6 +17,12 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 
 ## Changelog
 
+### 0.5
+- Remember which posts were sent and allow sending just the new ones. [WIP display works, actual sending not yet]
+- Automatically send new posts every week. [WIP setting screen is there, saving setting and cron not yet]
+- Allow auto-creating of "reading summary" draft posts with link plus excerpt and room for your own comments.
+- New-style setting screen with separate screen for reading summaries.
+
 ### 0.4
 - Update for Friends 2.0
 

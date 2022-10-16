@@ -327,16 +327,12 @@ class Send_To_E_Reader {
 				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all posts above', 'friends' ); ?>
 			</label>
 		</li>
+		<li class="menu-item">
+			<label class="form-switch">
+				<input type="checkbox" name="reading-summary" <?php checked( $this->reading_summary_enabled() ); ?>><i class="form-icon on"></i> <?php esc_html_e( 'Create a reading summary draft', 'friends' ); ?>
+			</label>
+		</li>
 		<?php
-		if ( $this->reading_summary_enabled() ) {
-			?>
-			<li class="menu-item">
-				<label class="form-switch">
-					<input type="checkbox" name="reading-summary" checked="checked"><i class="form-icon on"></i> <?php esc_html_e( 'Create a reading summary draft', 'friends' ); ?>
-				</label>
-			</li>
-			<?php
-		}
 	}
 
 	function ajax_send() {
