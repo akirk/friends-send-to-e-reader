@@ -84,6 +84,16 @@ jQuery( function( $ ) {
 		return false;
 	} );
 
+	$document.on( 'click', '#friends-ereader-multi-prompt a.title', function() {
+		$( '#ebook-title' ).val( $( this ).data( 'content' ) );
+		return false;
+	} );
+
+	$document.on( 'click', '#friends-ereader-multi-prompt a.author', function() {
+		$( '#ebook-author' ).val( $( this ).data( 'content' ) );
+		return false;
+	} );
+
 	$document.on( 'change', 'select#ereader-class', function() {
 		var td = $( '#' + $( this ).val().replace( '\\', '\\\\' ) );
 		td.show().siblings().hide();

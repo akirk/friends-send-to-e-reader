@@ -154,7 +154,14 @@ class Send_To_E_Reader {
 			return;
 		}
 		if ( is_user_logged_in() && Friends::on_frontend() ) {
-			Friends::template_loader()->get_template_part( 'frontend/ereader/dialog' );
+			global $wp_query;
+			$friend_name = __( 'Friend Post', 'friends' );
+			if ( $this->friends->frontend->author ) {
+				$friend_name = $this->friends->frontend->author->display_name;
+			}
+			Friends::template_loader()->get_template_part( 'frontend/ereader/dialog', null, array(
+				'friend_name' => $friend_name,
+			) );
 		}
 	}
 
