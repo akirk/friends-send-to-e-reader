@@ -161,6 +161,8 @@ class Send_To_E_Reader {
 			}
 			Friends::template_loader()->get_template_part( 'frontend/ereader/dialog', null, array(
 				'friend_name' => $friend_name,
+				'reading_summary_enabled' => $this->reading_summary_enabled(),
+				'reading_summary_title' => $this->reading_summary_title( $friend_name ),
 			) );
 		}
 	}
@@ -264,11 +266,10 @@ class Send_To_E_Reader {
 		return $paths;
 	}
 
-	public function get_unsent_posts() {
-		global $wp_query;
+	public function get_unsent_posts( $query_vars ) {
 		$query = new \WP_Query(
 			array_merge(
-				$wp_query->query_vars,
+				$query_vars,
 				array(
 					'nopaging'     => true,
 					'meta_key'     => self::POST_META,
@@ -327,11 +328,6 @@ class Send_To_E_Reader {
 				<input type="checkbox" name="multi-entry"><i class="form-icon off"></i> <?php esc_html_e( 'Include all posts above', 'friends' ); ?>
 			</label>
 		</li>
-		<li class="menu-item">
-			<label class="form-switch">
-				<input type="checkbox" name="reading-summary" <?php checked( $this->reading_summary_enabled() ); ?>><i class="form-icon on"></i> <?php esc_html_e( 'Create a reading summary draft', 'friends' ); ?>
-			</label>
-		</li>
 		<?php
 	}
 
@@ -341,23 +337,50 @@ class Send_To_E_Reader {
 			wp_send_json_error( __( 'E-Reader not configured', 'friends' ) );
 			exit;
 		}
-		if ( empty( $_POST['ids'] ) ) {
-			wp_send_json_error( __( 'No post ids specified', 'friends' ) );
+		$posts = array();
+		if ( ! empty( $_POST['unsent'] ) && ! empty( $_POST['query_vars'] )  && ! empty( $_POST['qv_sign'] ) ) {
+			$query_vars = wp_unslash( $_POST['query_vars'] );
+			if ( sha1( wp_salt( 'nonce' ) . $query_vars ) !== $_POST['qv_sign'] ) {
+				wp_send_json_error();
+				exit;
+			}
+			$query_vars = unserialize( $query_vars );
+
+			$posts = array_merge( $posts, $this->get_unsent_posts( $query_vars ) );
+		}
+
+		if ( ! empty( $_POST['ids'] ) ) {
+			$posts = array_merge( $posts, array_map( 'get_post', (array) $_POST['ids'] ) );
+		}
+
+		if ( empty( $posts ) ) {
+			wp_send_json_error( __( 'No posts could be found.', 'friends' ) );
 			exit;
 		}
-		$posts = array_map( 'get_post', (array) $_POST['ids'] );
+
 		$ereader = $ereaders[ $_POST['ereader'] ];
 		$result = $ereader->send_posts(
 			$posts,
-			empty( $_POST['title'] ) ? false : $_POST['title'],
-			empty( $_POST['author'] ) ? false : $_POST['author']
+			empty( $_POST['title'] ) ? false : sanitize_text_field( wp_unslash( $_POST['title'] ) ),
+			empty( $_POST['author'] ) ? false : sanitize_text_field( wp_unslash( $_POST['author'] ) )
 		);
+
 		if ( ! $result || is_wp_error( $result ) ) {
 			wp_send_json_error( $result );
 			exit;
 		}
+
 		if ( isset( $_POST['reading_summary'] ) && $_POST['reading_summary'] && is_array( $result ) ) {
-			$this->create_reading_summary( $posts, $result['title'], $result['author'] );
+			if ( ! empty( $_POST['reading_summary_title'] ) ) {
+				$reading_summary_title = sanitize_text_field( wp_unslash( $_POST['reading_summary_title'] ) );
+			} else {
+				$reading_summary_title = $this->reading_summary_title();
+			}
+			$this->create_reading_summary( $posts, $reading_summary_title );
+		}
+
+		foreach ( $posts as $post ) {
+			update_post_meta( $post->ID, self::POST_META, time() );
 		}
 
 		if ( $result instanceof E_Reader ) {
@@ -386,11 +409,9 @@ class Send_To_E_Reader {
 		);
 	}
 
-	protected function create_reading_summary( $posts, $title, $author ) {
+	protected function create_reading_summary( $posts, $reading_summary_title ) {
 		$post_content = array();
 		foreach ( $posts as $post ) {
-			update_post_meta( $post->ID, self::POST_META, time() );
-
 			$content = '<!-- wp:heading {"level":4} -->' . PHP_EOL . '<h4><a href="' . esc_url( get_the_permalink( $post ) ) . '">';
 
 			$content .= wp_kses_post( get_the_title( $post ) );
@@ -406,23 +427,25 @@ class Send_To_E_Reader {
 			$post_content[] = apply_filters( 'friends_send_to_e_reader_summary_entry', $content, $post );
 		}
 
-		$replace = array(
-			'$date' => date_i18n( __( 'F j, Y' ) ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
-			'$author' => $author,
-			'$title' => $title,
-		);
-		wp_insert_post(
-			array(
-				'post_title'   => str_replace(
-					array_keys( $replace ),
-					array_values( $replace ),
-					$this->reading_summary_title()
+		$summary_posts = get_posts( array(
+			'title'       => $reading_summary_title,
+			'number'      => 1,
+			'post_status' => 'draft',
+		) );
 
-				),
-				'post_status'  => 'draft',
-				'post_content' => implode( PHP_EOL, $post_content ),
-			)
-		);
+		if ( empty( $summary_posts ) ) {
+			wp_insert_post(
+				array(
+					'post_title'   => $reading_summary_title,
+					'post_status'  => 'draft',
+					'post_content' => implode( PHP_EOL, $post_content ),
+				)
+			);
+		} else {
+			$post = $summary_posts[0];
+			$post->post_content .= PHP_EOL . implode( PHP_EOL, $post_content );
+			wp_update_post( $post );
+		}
 	}
 
 	/**
@@ -434,14 +457,40 @@ class Send_To_E_Reader {
 	}
 
 	/**
-	 * Whether the Reading Summary is enabled.
+	 * Retrieve the Reading Summary title.
+
+	 * @param      string  $author                The author.
+	 * @param      bool    $replace_placeholders  Whether to already replace the placeholders.
+	 *
+	 * @return     string  The reading summary title.
 	 */
-	protected function reading_summary_title() {
+	protected function reading_summary_title( $author = null, $replace_placeholders = true ) {
 		$summary = get_option( self::READING_SUMMARY_OPTION, array() );
-		return ! empty( $summary['title'] ) ? $summary['title'] : sprintf(
-			// translators: %s is a date.
-			__( 'Reading List of %s', 'friends' ),
-			'$date'
+
+		if ( empty( $summary['title'] ) ) {
+			$summary['title'] = sprintf(
+				// translators: %1$s is a month, %2$s is a year.
+				__( 'Reading Notes, %1$s %2$s', 'friends' ),
+				'$date'
+			);
+		}
+
+		if ( ! $replace_placeholders ) {
+			return $summary['title'];
+		}
+
+		$replace = array(
+			'$date' => date_i18n( __( 'F j, Y' ) ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+			'$day' => date_i18n( 'j' ),
+			'$month' => date_i18n( 'F' ),
+			'$year' => date_i18n( 'Y' ),
+			'$author' => $author,
+		);
+
+		return str_replace(
+			array_keys( $replace ),
+			array_values( $replace ),
+			$summary['title']
 		);
 	}
 
@@ -469,7 +518,7 @@ class Send_To_E_Reader {
 			array(
 				'nonce_value'           => $nonce_value,
 				'reading_summary'       => $this->reading_summary_enabled(),
-				'reading_summary_title' => $this->reading_summary_title(),
+				'reading_summary_title' => $this->reading_summary_title( null, false ),
 				// 'cron_day' => $this->cron_day(),
 				// 'cron_ereader' => $this->cron_ereader(),
 			)
@@ -623,13 +672,14 @@ class Send_To_E_Reader {
 	}
 
 	public function friends_author_header( User $friend_user, $args ) {
+		global $wp_query;
 		Friends::template_loader()->get_template_part(
 			'frontend/ereader/author-header',
 			null,
 			array_merge(
 				array(
 					'ereaders'     => $this->get_active_ereaders(),
-					'unsent_posts' => $this->get_unsent_posts(),
+					'unsent_posts' => $this->get_unsent_posts( $wp_query->query_vars ),
 					'friend'       => $friend_user,
 				),
 				$args

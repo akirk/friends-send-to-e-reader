@@ -30,7 +30,7 @@
 					</label>
 					</p>
 					<p class="description">
-						<?php echo wp_kses( __( 'This title for the draft post will be used. You can use the following variables: <tt>$date</tt> <tt>$author</tt> <tt>$title</tt>', 'friends' ), array( 'tt' => array() ) ); ?>
+						<?php echo wp_kses( __( 'This title for the draft post will be used. You can use the following variables: <tt>$date</tt> <tt>$day</tt> <tt>$month</tt> <tt>$year</tt> <tt>$author</tt>', 'friends' ), array( 'tt' => array() ) ); ?>
 					</p>
 				</fieldset>
 			</td>

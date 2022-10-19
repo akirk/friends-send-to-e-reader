@@ -8,7 +8,7 @@
 if ( $args['friend']->has_cap( 'post_collection' ) ) {
 	if ( count( $args['unsent_posts'] ) ) {
 		foreach ( $args['ereaders'] as $id => $ereader ) {
-			?><a class="chip send-unread-to-ereader" data-ereader="<?php echo esc_attr( $id ); ?>" href="#">
+			?><a class="chip friends-send-new-posts-to-ereader" data-ereader="<?php echo esc_attr( $id ); ?>" data-unsent="<?php echo esc_attr( count( $args['unsent_posts'] ) ); ?>" href="#">
 			<?php
 			echo esc_html(
 				sprintf(
@@ -19,6 +19,7 @@ if ( $args['friend']->has_cap( 'post_collection' ) ) {
 				)
 			);
 			?>
+				<i class="form-icon"></i>
 				</a>
 				<?php
 		}
