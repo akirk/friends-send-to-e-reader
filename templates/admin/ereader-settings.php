@@ -26,7 +26,7 @@
 				<fieldset>
 					<p>
 					<label for="reading_summary_title">
-						<input type="text" name="reading_summary_title" id="reading_summary_title" value="<?php echo esc_attr( $args['reading_summary_title'] ); ?>" />
+						<input type="text" class="regular-text" name="reading_summary_title" id="reading_summary_title" value="<?php echo esc_attr( $args['reading_summary_title'] ); ?>" />
 					</label>
 					</p>
 					<p class="description">

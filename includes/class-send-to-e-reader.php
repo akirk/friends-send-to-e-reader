@@ -471,7 +471,8 @@ class Send_To_E_Reader {
 			$summary['title'] = sprintf(
 				// translators: %1$s is a month, %2$s is a year.
 				__( 'Reading Notes, %1$s %2$s', 'friends' ),
-				'$date'
+				'$month',
+				'$year'
 			);
 		}
 

@@ -4,6 +4,7 @@
  * Plugin author: Alex Kirk
  * Plugin URI: https://github.com/akirk/friends-send-to-e-reader
  * Version: 0.5
+ * Requires Plugins: friends
  *
  * Description: Send friend posts to your e-reader.
  *
