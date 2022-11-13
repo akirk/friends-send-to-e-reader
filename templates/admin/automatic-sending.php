@@ -5,6 +5,7 @@
  * @package Friends_Send_To_E_Reader
  */
 
+return; // Not ready.
 global $wp_locale;
 ?>
 <tr>

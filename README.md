@@ -17,6 +17,11 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 
 ## Changelog
 
+### 0.6
+- Remove MOBI support since Amazon now accepts EPubs by mail.
+- Introduce Reading Summaries: You can create a new draft posts from your sent articles so that you can easily post about them.
+- Remember which posts were already sent, enabling a "Send x new posts to your e-reader" button in the header.
+
 ### 0.5
 - Remember which posts were sent and allow sending just the new ones. [WIP display works, actual sending not yet]
 - Automatically send new posts every week. [WIP setting screen is there, saving setting and cron not yet]
