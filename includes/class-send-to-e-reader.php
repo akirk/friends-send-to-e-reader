@@ -185,7 +185,7 @@ class Send_To_E_Reader {
 				'friends',
 				__( 'E-Readers', 'friends' ),
 				__( 'E-Readers', 'friends' ),
-				'administrator',
+				'edit_private_posts',
 				'friends-send-to-e-reader',
 				array( $this, 'configure_ereaders' )
 			);
@@ -193,17 +193,17 @@ class Send_To_E_Reader {
 				'friends',
 				__( 'E-Reader Settings', 'friends' ),
 				__( 'E-Reader Settings', 'friends' ),
-				'administrator',
+				'edit_private_posts',
 				'friends-send-to-e-reader-settings',
 				array( $this, 'settings' )
 			);
 		} else {
-			add_menu_page( 'friends', __( 'Friends', 'friends' ), 'administrator', 'friends-send-to-e-reader', null, 'dashicons-groups', 3 );
+			add_menu_page( 'friends', __( 'Friends', 'friends' ), 'edit_private_posts', 'friends-send-to-e-reader', null, 'dashicons-groups', 3 );
 			add_submenu_page(
 				'friends-send-to-e-reader',
 				__( 'About', 'friends' ),
 				__( 'About', 'friends' ),
-				'administrator',
+				'edit_private_posts',
 				'friends-send-to-e-reader',
 				array( $this, 'configure_ereaders_with_friends_about' )
 			);
