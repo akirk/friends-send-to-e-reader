@@ -28,10 +28,6 @@ jQuery( function( $ ) {
 			search_indicator.addClass( 'pl-2' );
 		} else {
 			data.ids = [ $this.data( 'id' ) ];
-			$( dialog ).find( 'h5' ).text( data.ids.length + ' posts selected' );
-			post_list.append( '<li>' + $this.closest( 'article' ).find( 'h4.card-title' ).text() + ' by ' + $this.closest( 'article' ).find( 'div.author' ).text() );
-			show_dialog = data.ids.length > 1;
-
 			if ( $this.closest( 'ul' ).find( 'li.menu-item input[name=multi-entry]' ).is( ':checked' ) ) {
 				$this.closest( 'article' ).prevAll().slice( -30 ).each( function( i, article ) {
 					if ( 'post-' === article.id.substr( 0, 5 ) ) {
@@ -40,6 +36,9 @@ jQuery( function( $ ) {
 					}
 				} );
 			}
+			$( dialog ).find( 'h5' ).text( data.ids.length + ' posts selected' );
+			post_list.append( '<li>' + $this.closest( 'article' ).find( 'h4.card-title' ).text() + ' by ' + $this.closest( 'article' ).find( 'div.author' ).text() );
+			show_dialog = data.ids.length > 1;
 
 			$( '#ebook-title' ).prop( 'placeholder', $.trim( $( '#post-' + data.ids[0] + ' h4.card-title' ).text().replace( /\s+/, ' ' ) ) + ' & more' );
 			$( '#ebook-author' ).prop( 'placeholder', $.trim( $.trim( $( '#post-' + data.ids[0] + ' div.author' ).text().replace( /\s+/, ' ' ) ) + ' et al' ) );
