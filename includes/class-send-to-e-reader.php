@@ -159,11 +159,15 @@ class Send_To_E_Reader {
 			if ( $this->friends->frontend->author ) {
 				$friend_name = $this->friends->frontend->author->display_name;
 			}
-			Friends::template_loader()->get_template_part( 'frontend/ereader/dialog', null, array(
-				'friend_name' => $friend_name,
-				'reading_summary_enabled' => $this->reading_summary_enabled(),
-				'reading_summary_title' => $this->reading_summary_title( $friend_name ),
-			) );
+			Friends::template_loader()->get_template_part(
+				'frontend/ereader/dialog',
+				null,
+				array(
+					'friend_name'             => $friend_name,
+					'reading_summary_enabled' => $this->reading_summary_enabled(),
+					'reading_summary_title'   => $this->reading_summary_title( $friend_name ),
+				)
+			);
 		}
 	}
 
@@ -338,7 +342,7 @@ class Send_To_E_Reader {
 			exit;
 		}
 		$posts = array();
-		if ( ! empty( $_POST['unsent'] ) && ! empty( $_POST['query_vars'] )  && ! empty( $_POST['qv_sign'] ) ) {
+		if ( ! empty( $_POST['unsent'] ) && ! empty( $_POST['query_vars'] ) && ! empty( $_POST['qv_sign'] ) ) {
 			$query_vars = wp_unslash( $_POST['query_vars'] );
 			if ( sha1( wp_salt( 'nonce' ) . $query_vars ) !== $_POST['qv_sign'] ) {
 				wp_send_json_error();
@@ -427,11 +431,13 @@ class Send_To_E_Reader {
 			$post_content[] = apply_filters( 'friends_send_to_e_reader_summary_entry', $content, $post );
 		}
 
-		$summary_posts = get_posts( array(
-			'title'       => $reading_summary_title,
-			'number'      => 1,
-			'post_status' => 'draft',
-		) );
+		$summary_posts = get_posts(
+			array(
+				'title'       => $reading_summary_title,
+				'number'      => 1,
+				'post_status' => 'draft',
+			)
+		);
 
 		if ( empty( $summary_posts ) ) {
 			wp_insert_post(
@@ -459,8 +465,8 @@ class Send_To_E_Reader {
 	/**
 	 * Retrieve the Reading Summary title.
 
-	 * @param      string  $author                The author.
-	 * @param      bool    $replace_placeholders  Whether to already replace the placeholders.
+	 * @param      string $author                The author.
+	 * @param      bool   $replace_placeholders  Whether to already replace the placeholders.
 	 *
 	 * @return     string  The reading summary title.
 	 */
@@ -481,10 +487,10 @@ class Send_To_E_Reader {
 		}
 
 		$replace = array(
-			'$date' => date_i18n( __( 'F j, Y' ) ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
-			'$day' => date_i18n( 'j' ),
-			'$month' => date_i18n( 'F' ),
-			'$year' => date_i18n( 'Y' ),
+			'$date'   => date_i18n( __( 'F j, Y' ) ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+			'$day'    => date_i18n( 'j' ),
+			'$month'  => date_i18n( 'F' ),
+			'$year'   => date_i18n( 'Y' ),
 			'$author' => $author,
 		);
 
