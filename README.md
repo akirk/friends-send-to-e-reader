@@ -17,6 +17,9 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 
 ## Changelog
 
+### 0.7
+- Fix multi-item dialog not popping up.
+
 ### 0.6
 - Remove MOBI support since Amazon now accepts EPubs by mail.
 - Introduce Reading Summaries: You can create a new draft posts from your sent articles so that you can easily post about them.

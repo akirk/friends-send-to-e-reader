@@ -3,7 +3,7 @@
  * Plugin name: Friends Send to E-Reader
  * Plugin author: Alex Kirk
  * Plugin URI: https://github.com/akirk/friends-send-to-e-reader
- * Version: 0.6
+ * Version: 0.7
  * Requires Plugins: friends
  *
  * Description: Send friend posts to your e-reader.
@@ -20,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 define( 'FRIENDS_SEND_TO_E_READER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'FRIENDS_SEND_TO_E_READER_VERSION', 0.6 );
+define( 'FRIENDS_SEND_TO_E_READER_VERSION', 0.7 );
 
 require 'libs/autoload.php';
 require_once __DIR__ . '/includes/class-send-to-e-reader.php';
