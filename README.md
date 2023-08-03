@@ -17,7 +17,7 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 
 ## Changelog
 
-### 0.8
+### 0.8.0
 - Fix choking on invalid SVGs
 - Enable unsent posts for any author
 - Add the ability to download ePub through special URLs ([#5])
