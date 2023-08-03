@@ -78,7 +78,7 @@ class E_Reader_Download extends E_Reader {
 
 		$file = array(
 			'name'     => basename( $tmp_file ),
-			'type'     => 'application/epub',
+			'type'     => 'application/epub+zip',
 			'tmp_name' => $tmp_file,
 			'error'    => 0,
 			'size'     => filesize( $tmp_file ),
@@ -89,12 +89,20 @@ class E_Reader_Download extends E_Reader {
 			'test_type' => false,
 		);
 
-		$results = wp_handle_sideload( $file, $overrides );
-		if ( ! empty( $results['error'] ) ) {
+		include ABSPATH . 'wp-admin/includes/file.php';
+		$result = wp_handle_sideload( $file, $overrides );
+		if ( ! empty( $result['error'] ) ) {
 			return false;
 		}
 
-		return array( 'url' => $results['url'], 'title' => $this->ebook_title, 'author' => $this->ebook_author );
+		if ( ! $result['type'] ) {
+			$result['type'] = 'application/epub+zip';
+		}
+
+		$result['title'] = $this->ebook_title;
+		$result['author'] = $this->ebook_author;
+
+		return $result;
 	}
 
 }
