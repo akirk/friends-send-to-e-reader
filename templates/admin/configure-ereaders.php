@@ -30,7 +30,7 @@ $save_changes = __( 'Save Changes', 'friends' );
 			);
 			?>
 			<tr>
-				<td class="check-column"><input type="checkbox" name="ereaders[<?php echo esc_attr( $id ); ?>][active]" value="1" <?php checked( $ereader->active ); ?>" /></td>
+				<td class="check-column"><input type="checkbox" name="ereaders[<?php echo esc_attr( $id ); ?>][active]" value="1" <?php checked( $ereader->active ); ?> /></td>
 				<td><input type="hidden" name="ereaders[<?php echo esc_attr( $id ); ?>][class]" value="<?php echo esc_attr( get_class( $ereader ) ); ?>" /><?php echo esc_html( $ereader::NAME ); ?> </td>
 				<td><input type="text" class="name" name="ereaders[<?php echo esc_attr( $id ); ?>][name]" value="<?php echo esc_attr( $ereader->get_name() ); ?>" size="30" aria-label="<?php esc_attr_e( 'E-Reader Name', 'friends' ); ?>" /></td>
 				<td><?php $ereader->render_input(); ?></td>
@@ -38,7 +38,7 @@ $save_changes = __( 'Save Changes', 'friends' );
 			</tr>
 		<?php endforeach; ?>
 		<tr class="template<?php echo empty( $args['ereaders'] ) ? '' : ' hidden'; ?>">
-			<td><input type="checkbox" name="ereaders[new][active]" value="1" <?php checked( true ); ?>" /></td>
+			<td><input type="checkbox" name="ereaders[new][active]" value="1" <?php checked( true ); ?> /></td>
 			<td>
 				<select name="ereaders[new][class]" id="ereader-class">
 					<option  disabled selected hidden><?php esc_html_e( 'Select your E-Reader', 'friends' ); ?></option>
