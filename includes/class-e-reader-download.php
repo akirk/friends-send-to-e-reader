@@ -96,7 +96,7 @@ class E_Reader_Download extends E_Reader {
 		}
 
 		if ( ! $result['type'] ) {
-			$result['type'] = 'application/epub+zip';
+			$result['type'] = $file['type'];
 		}
 
 		$result['title'] = $this->ebook_title;

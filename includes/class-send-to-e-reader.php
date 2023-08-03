@@ -790,9 +790,7 @@ class Send_To_E_Reader {
 			update_post_meta( $post->ID, self::POST_META, time() );
 		}
 
-		header( 'Content-Type: ' . $result['type'] );
-		header( 'Content-Disposition: attachment; filename="' . basename( $result['file'] ) . '"' );
-		readfile( $result['file'] );
+		wp_redirect( $result['url'] );
 		exit;
 	}
 }
