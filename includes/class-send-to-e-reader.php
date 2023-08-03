@@ -28,10 +28,13 @@ class Send_To_E_Reader {
 	const POST_META = 'friends-sent-to-ereader';
 	const EREADERS_OPTION = 'friends-send-to-e-reader_readers';
 	const READING_SUMMARY_OPTION = 'friends-send-to-e-reader_reading-summary';
+	const DOWNLOAD_PASSWORD_OPTION = 'friends_send_to_e_reader_download_password';
 	const CRON_OPTION = 'friends-send-to-e-reader_cron';
 
 	private $ereaders = null;
 	private $ereader_classes = array();
+
+	private $download_request = false;
 
 	/**
 	 * Constructor
@@ -62,6 +65,8 @@ class Send_To_E_Reader {
 		add_action( 'wp_footer', array( $this, 'print_dialog' ) );
 		add_action( 'wp_ajax_send-post-to-e-reader', array( $this, 'ajax_send' ) );
 		add_action( 'friends_author_header', array( $this, 'friends_author_header' ), 10, 2 );
+		add_filter( 'friends_friend_posts_query_viewable', array( $this, 'enable_download_via_url' ) );
+		add_filter( 'template_include', array( $this, 'download_via_url' ) );
 	}
 
 	public function register_ereader( $ereader_class ) {
@@ -406,8 +411,8 @@ class Send_To_E_Reader {
 				'active' => $active,
 				'title'  => __( 'Send to E-Reader', 'friends' ),
 				'menu'   => array(
-					'E-Readers' => 'friends-send-to-e-reader',
-					'Settings'  => 'friends-send-to-e-reader-settings',
+					__( 'E-Readers', 'friends' ) => 'friends-send-to-e-reader',
+					__( 'Settings' ) => 'friends-send-to-e-reader-settings',
 				),
 			)
 		);
@@ -514,6 +519,7 @@ class Send_To_E_Reader {
 			$summary['title'] = sanitize_text_field( wp_unslash( $_POST['reading_summary_title'] ) );
 
 			update_option( self::READING_SUMMARY_OPTION, $summary );
+			update_option( self::DOWNLOAD_PASSWORD_OPTION, sanitize_text_field( wp_unslash( $_POST['download_password'] ) ) );
 		}
 		$summary = get_option( self::READING_SUMMARY_OPTION, array() );
 
@@ -526,6 +532,8 @@ class Send_To_E_Reader {
 				'nonce_value'           => $nonce_value,
 				'reading_summary'       => $this->reading_summary_enabled(),
 				'reading_summary_title' => $this->reading_summary_title( null, false ),
+				'download_password'     => get_option( self::DOWNLOAD_PASSWORD_OPTION, hash( 'crc32', wp_salt( 'nonce' ), false ) ),
+
 				// 'cron_day' => $this->cron_day(),
 				// 'cron_ereader' => $this->cron_ereader(),
 			)
@@ -694,4 +702,97 @@ class Send_To_E_Reader {
 		);
 	}
 
+
+	public function enable_download_via_url( $viewable ) {
+		$ereader_url_var = 'epub' . get_option( self::DOWNLOAD_PASSWORD_OPTION, hash( 'crc32', wp_salt( 'nonce' ), false ) );
+		if (
+			! isset( $_GET[ $ereader_url_var ] )
+			|| ! in_array(
+				$_GET[ $ereader_url_var ],
+				array(
+					'new',
+					'all',
+					'last',
+				)
+			)
+		) {
+			return $viewable;
+		}
+
+		$this->download_request = $_GET[ $ereader_url_var ];
+		return true;
+	}
+
+	public function download_via_url( $template ) {
+		if ( ! $this->enable_download_via_url( false ) ) {
+			return $template;
+		}
+
+		$ereader = new E_Reader_Download( $this->download_request );
+		global $wp_query;
+		if ( 'new' === $this->download_request ) {
+			$posts = $this->get_unsent_posts( $wp_query->query_vars );
+		} elseif ( 'all' === $this->download_request ) {
+			$query = new \WP_Query(
+				array_merge(
+					$wp_query->query_vars,
+					array(
+						'nopaging' => true,
+					)
+				)
+			);
+			$posts = $query->get_posts();
+		} elseif ( 'last' === $this->download_request ) {
+			$query = new \WP_Query(
+				array_merge(
+					$wp_query->query_vars,
+					array(
+						'posts_per_page' => 10,
+					)
+				)
+			);
+			$posts = $query->get_posts();
+		}
+
+		if ( empty( $posts ) ) {
+			status_header( 404 );
+			echo 'no posts found';
+			exit;
+		}
+
+
+		$title = date_i18n( __( 'F j, Y' ) );
+
+		$author = __( 'Friend Post', 'friends' );
+		if ( $this->friends->frontend->author ) {
+			$author = $this->friends->frontend->author->display_name;
+		}
+
+		if ( 1 === count( $posts ) ) {
+			$title = $posts[0]->post_title;
+			$author = User::get_post_author( $posts[0] );
+			$author = $author->display_name;
+		}
+
+		$result = $ereader->send_posts(
+			$posts,
+			$title,
+			$author
+		);
+
+		if ( ! $result ) {
+			status_header( 404 );
+			echo 'error';
+			exit;
+		}
+
+		foreach ( $posts as $post ) {
+			update_post_meta( $post->ID, self::POST_META, time() );
+		}
+
+		header( 'Content-Type: ' . $result['type'] );
+		header( 'Content-Disposition: attachment; filename="' . basename( $result['file'] ) . '"' );
+		readfile( $result['file'] );
+		exit;
+	}
 }

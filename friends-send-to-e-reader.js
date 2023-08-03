@@ -64,7 +64,7 @@ jQuery( function( $ ) {
 					}
 				},
 				error: function( e ) {
-					search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-warning' ).prop( 'title', e );
+					search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-warning' ).prop( 'title', e.responseText.replace( /<\/?[^>]+(>|$)/g, '' ) );
 				}
 			} );
 		}
@@ -129,6 +129,12 @@ jQuery( function( $ ) {
 
 	$document.on( 'click', 'a.delete-reader', function() {
 		$( this ).closest('tr').html( '<td colspan=3>' + $( this ).data( 'delete-text' ) );
+		return false;
+	} );
+
+
+	$document.on( 'keyup', 'input#download_password', function() {
+		$( 'tt.download_password_preview' ).text( $(this).val() );
 		return false;
 	} );
 

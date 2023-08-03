@@ -35,6 +35,32 @@
 				</fieldset>
 			</td>
 		</tr>
+		<tr>
+			<th><?php esc_html_e( 'Download Password', 'friends' ); ?></th>
+			<td>
+				<fieldset>
+					<p>
+					<label for="download_password">
+						<input type="text" class="regular-text" name="download_password" id="download_password" value="<?php echo esc_attr( $args['download_password'] ); ?>" pattern="[a-zA-Z0-9_-]+" title="<?php esc_attr_e( 'Only latin characters and digits allowed', 'friends' ); ?>" required />
+					</label>
+					</p>
+					<p class="description">
+						<?php esc_html_e( 'This enables you to download an ePub from your E-Reader by appending either of these to any of your Friends URLs:', 'friends' ); ?>
+					</p>
+					<ul>
+						<?php foreach (
+							array(
+								'all' => __( 'All posts from this friend:', 'friends' ),
+								'last' => __( 'The last 10 posts from this friend:', 'friends' ),
+								'new' => __( 'Posts not yet sent from this friend:', 'friends' ),
+							) as $key => $description
+						) : ?>
+						<li><span class="description"><?php echo esc_html( $description ); ?></span> <tt>?epub</tt><tt class="download_password_preview"><?php echo esc_html( $args['download_password'] ); ?></tt><tt>=<?php echo esc_html( $key ); ?></tt></li>
+						<?php endforeach; ?>
+					</ul>
+				</fieldset>
+			</td>
+		</tr>
 	</table>
 	<input type="submit" id="submit" class="button button-primary" value="<?php esc_attr_e( 'Save Changes', 'friends' ); ?>" />
 </form>
