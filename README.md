@@ -17,6 +17,11 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 
 ## Changelog
 
+### 0.8
+- Fix choking on invalid SVGs
+- Enable unsent posts for any author
+- Add the ability to download ePub through special URLs ([#5])
+
 ### 0.7
 - Fix multi-item dialog not popping up.
 
@@ -37,3 +42,5 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 ### 0.3
 - Allow downloading the ePub.
 - Theoretically add support for Tolino. Not functional because Thalia doesn't want to provide OAuth2 credentials.
+
+[#5]: https://github.com/akirk/friends-send-to-e-reader/pull/5
