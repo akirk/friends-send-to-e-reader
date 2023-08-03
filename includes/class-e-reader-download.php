@@ -89,7 +89,7 @@ class E_Reader_Download extends E_Reader {
 			'test_type' => false,
 		);
 
-		include ABSPATH . 'wp-admin/includes/file.php';
+		include_once ABSPATH . 'wp-admin/includes/file.php';
 		$result = wp_handle_sideload( $file, $overrides );
 		if ( ! empty( $result['error'] ) ) {
 			return false;
