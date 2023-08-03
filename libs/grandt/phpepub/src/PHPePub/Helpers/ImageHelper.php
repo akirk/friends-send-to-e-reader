@@ -230,6 +230,9 @@ class ImageHelper {
             if (BinStringStatic::startsWith(trim($image), '<svg') || (BinStringStatic::startsWith(trim($image), '<?xml') || strpos($image, '<svg') > 0)) {
                 // SVG image.
                 $xml = simplexml_load_string($image);
+                if ( ! $xml ) {
+                    return false;
+                }
                 $attr = $xml->attributes();
 
                 $meta = ImageHelper::handleSVGAttribs($xml);
