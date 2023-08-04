@@ -6,11 +6,12 @@ jQuery( function( $ ) {
 		var $this = $(this);
 		var search_indicator = $this.find( 'i' );
 		if ( search_indicator.hasClass( 'loading' ) ) {
-			return;
+			return false;
 		}
 
 		var data = {
-			ereader: $this.data( 'ereader' )
+			ereader: $this.data( 'ereader' ),
+			_ajax_nonce: friends_send_to_ereader.nonce
 		};
 
 		var show_dialog = false;
@@ -98,6 +99,32 @@ jQuery( function( $ ) {
 			send( data );
 		}
 
+		return false;
+	} );
+
+	$document.on( 'click', 'a.friends-unmark-e-reader-send', function() {
+		var $this = $(this);
+		var search_indicator = $this.find( 'i' );
+		if ( search_indicator.hasClass( 'loading' ) ) {
+			return false;
+		}
+
+		wp.ajax.send( 'unmark-e-reader-send', {
+			data: {
+				_ajax_nonce: friends_send_to_ereader.nonce,
+				id: $this.data( 'id' )
+			},
+			beforeSend: function() {
+				search_indicator.addClass( 'form-icon loading' );
+			},
+			success: function( e ) {
+				search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-saved' );
+				$this.closest( 'li' ).prevAll().filter( '.divider.ereader' ).attr( 'data-content', friends_send_to_ereader.ereader );
+			},
+			error: function( e ) {
+				search_indicator.removeClass( 'form-icon loading' ).addClass( 'dashicons dashicons-warning' ).prop( 'title', e.responseText.replace( /<\/?[^>]+(>|$)/g, '' ) );
+			}
+		} );
 		return false;
 	} );
 
