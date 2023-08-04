@@ -557,6 +557,7 @@ class Send_To_E_Reader {
 				'reading_summary'       => $this->reading_summary_enabled(),
 				'reading_summary_title' => $this->reading_summary_title( null, false ),
 				'download_password'     => get_option( self::DOWNLOAD_PASSWORD_OPTION, hash( 'crc32', wp_salt( 'nonce' ), false ) ),
+				'all-friends'           => User_Query::all_associated_users(),
 
 				// 'cron_day' => $this->cron_day(),
 				// 'cron_ereader' => $this->cron_ereader(),

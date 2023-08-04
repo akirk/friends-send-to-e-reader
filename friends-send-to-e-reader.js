@@ -160,8 +160,22 @@ jQuery( function( $ ) {
 	} );
 
 
+	$document.on( 'click', 'span.download-preview', function() {
+		const range = document.createRange();
+		range.selectNodeContents( this );
+
+		const selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange( range );
+	} );
+
 	$document.on( 'keyup', 'input#download_password', function() {
 		$( 'tt.download_password_preview' ).text( $(this).val() );
+		return false;
+	} );
+
+	$document.on( 'change', 'select#all-friends-preview', function() {
+		$( 'tt.friends-sample-url' ).text( $(this).val() );
 		return false;
 	} );
 
