@@ -18,6 +18,7 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 ## Changelog
 
 ### 0.8.1
+- Add a Download URL previewer ([#7])
 - Add the ability to mark an article as new ([#6])
 
 ### 0.8.0
@@ -46,5 +47,6 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 - Allow downloading the ePub.
 - Theoretically add support for Tolino. Not functional because Thalia doesn't want to provide OAuth2 credentials.
 
+[#7]: https://github.com/akirk/friends-send-to-e-reader/pull/7
 [#6]: https://github.com/akirk/friends-send-to-e-reader/pull/6
 [#5]: https://github.com/akirk/friends-send-to-e-reader/pull/5
