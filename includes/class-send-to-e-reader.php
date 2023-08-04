@@ -64,6 +64,7 @@ class Send_To_E_Reader {
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_action( 'wp_footer', array( $this, 'print_dialog' ) );
 		add_action( 'wp_ajax_send-post-to-e-reader', array( $this, 'ajax_send' ) );
+		add_action( 'wp_ajax_unmark-e-reader-send', array( $this, 'ajax_unmark' ) );
 		add_action( 'friends_author_header', array( $this, 'friends_author_header' ), 10, 2 );
 		add_filter( 'friends_friend_posts_query_viewable', array( $this, 'enable_download_via_url' ) );
 		add_filter( 'template_include', array( $this, 'download_via_url' ) );
@@ -151,6 +152,15 @@ class Send_To_E_Reader {
 			$file = 'friends-send-to-e-reader.js';
 			$version = FRIENDS_SEND_TO_E_READER_VERSION;
 			wp_enqueue_script( $handle, plugins_url( $file, __DIR__ ), array( 'friends' ), apply_filters( 'friends_debug_enqueue', $version, $handle, dirname( __DIR__ ) . '/' . $file ) );
+			wp_localize_script(
+				$handle,
+				'friends_send_to_ereader',
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'send-post-to-e-reader' ),
+					'ereader' => __( 'E-Reader', 'friends' ),
+				)
+			);
 		}
 	}
 
@@ -290,10 +300,10 @@ class Send_To_E_Reader {
 	}
 
 	public function entry_dropdown_menu() {
-		$divider = '<li class="divider" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
+		$divider = '<li class="divider ereader" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
 		$already_sent = get_post_meta( get_the_ID(), self::POST_META );
 		if ( $already_sent ) {
-			$divider = '<li class="divider" data-content="' . esc_attr(
+			$divider = '<li class="divider ereader" data-content="' . esc_attr(
 				sprintf(
 					// translators: %s is a date.
 					__( 'E-Reader: Sent on %s', 'friends' ),
@@ -338,9 +348,23 @@ class Send_To_E_Reader {
 			</label>
 		</li>
 		<?php
+		if ( $already_sent ) {
+		?>
+			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" class="friends-unmark-e-reader-send has-icon-right"><?php esc_html_e( 'Mark as new', 'friends' ); ?>
+				<i class="form-icon"></i></a></li>
+			<?php
+		}
+	}
+
+	function ajax_unmark() {
+		check_ajax_referer( 'send-post-to-e-reader' );
+		delete_post_meta( $_POST['id'], self::POST_META );
+		wp_send_json_success();
 	}
 
 	function ajax_send() {
+		check_ajax_referer( 'send-post-to-e-reader' );
+
 		$ereaders = $this->get_ereaders();
 		if ( ! isset( $ereaders[ $_POST['ereader'] ] ) ) {
 			wp_send_json_error( __( 'E-Reader not configured', 'friends' ) );
