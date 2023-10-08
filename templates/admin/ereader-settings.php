@@ -48,13 +48,16 @@
 						<?php esc_html_e( 'This enables you to download an ePub from your E-Reader by appending either of these to any of your Friends URLs:', 'friends' ); ?>
 					</p>
 					<ul>
-						<?php foreach (
+						<?php
+						foreach (
 							array(
-								'all' => __( 'All posts from this friend:', 'friends' ),
+								'all'  => __( 'All posts from this friend:', 'friends' ),
 								'last' => __( 'The last 10 posts from this friend:', 'friends' ),
-								'new' => __( 'Posts not yet sent from this friend:', 'friends' ),
+								'new'  => __( 'Posts not yet sent from this friend:', 'friends' ),
+								'list' => __( 'List last for manual selection from this friend:', 'friends' ),
 							) as $key => $description
-						) : ?>
+						) :
+							?>
 						<li><span class="description"><?php echo esc_html( $description ); ?></span> <span class="download-preview"><tt class="friends-sample-url"></tt><tt>?epub</tt><tt class="download_password_preview"><?php echo esc_html( $args['download_password'] ); ?></tt><tt>=<?php echo esc_html( $key ); ?></tt></span></li>
 						<?php endforeach; ?>
 					</ul>

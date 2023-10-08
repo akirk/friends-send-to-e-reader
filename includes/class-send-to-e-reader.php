@@ -349,7 +349,7 @@ class Send_To_E_Reader {
 		</li>
 		<?php
 		if ( $already_sent ) {
-		?>
+			?>
 			<li class="menu-item"><a href="#" data-id="<?php echo esc_attr( get_the_ID() ); ?>" class="friends-unmark-e-reader-send has-icon-right"><?php esc_html_e( 'Mark as new', 'friends' ); ?>
 				<i class="form-icon"></i></a></li>
 			<?php
@@ -436,7 +436,7 @@ class Send_To_E_Reader {
 				'title'  => __( 'Send to E-Reader', 'friends' ),
 				'menu'   => array(
 					__( 'E-Readers', 'friends' ) => 'friends-send-to-e-reader',
-					__( 'Settings' ) => 'friends-send-to-e-reader-settings',
+					__( 'Settings' )             => 'friends-send-to-e-reader-settings',
 				),
 			)
 		);
@@ -730,14 +730,18 @@ class Send_To_E_Reader {
 
 	public function enable_download_via_url( $viewable ) {
 		$ereader_url_var = 'epub' . get_option( self::DOWNLOAD_PASSWORD_OPTION, hash( 'crc32', wp_salt( 'nonce' ), false ) );
+		if ( ! isset( $_GET[ $ereader_url_var ] ) ) {
+			return $viewable;
+		}
 		if (
-			! isset( $_GET[ $ereader_url_var ] )
-			|| ! in_array(
+			! is_array( $_GET[ $ereader_url_var ] )
+			&& ! in_array(
 				$_GET[ $ereader_url_var ],
 				array(
 					'new',
 					'all',
 					'last',
+					'list',
 				)
 			)
 		) {
@@ -753,9 +757,51 @@ class Send_To_E_Reader {
 			return $template;
 		}
 
-		$ereader = new E_Reader_Download( $this->download_request );
 		global $wp_query;
-		if ( 'new' === $this->download_request ) {
+		if ( 'list' === $this->download_request ) {
+			$unsent = array();
+			foreach ( $this->get_unsent_posts( $wp_query->query_vars ) as $post ) {
+				$unsent[ $post->ID ] = $post;
+			}
+
+			$query = new \WP_Query(
+				array_merge(
+					$wp_query->query_vars,
+					array(
+						'posts_per_page' => 50,
+					)
+				)
+			);
+			$posts = array();
+			foreach ( $query->get_posts() as $post ) {
+				$posts[ $post->ID ] = $post;
+			}
+
+			Friends::template_loader()->get_template_part(
+				'plain-list',
+				null,
+				array(
+					'title'     => 'Friends ePub',
+					'unsent'    => $unsent,
+					'posts'     => $posts,
+					'inputname' => 'epub' . get_option( self::DOWNLOAD_PASSWORD_OPTION, hash( 'crc32', wp_salt( 'nonce' ), false ) ),
+				)
+			);
+			exit;
+		}
+
+		$ereader = new E_Reader_Download( $this->download_request );
+		if ( is_array( $this->download_request ) ) {
+			$query = new \WP_Query(
+				array_merge(
+					$wp_query->query_vars,
+					array(
+						'post__in' => $this->download_request,
+					)
+				)
+			);
+			$posts = $query->get_posts();
+		} elseif ( 'new' === $this->download_request ) {
 			$posts = $this->get_unsent_posts( $wp_query->query_vars );
 		} elseif ( 'all' === $this->download_request ) {
 			$query = new \WP_Query(
@@ -784,7 +830,6 @@ class Send_To_E_Reader {
 			echo 'no posts found';
 			exit;
 		}
-
 
 		$title = date_i18n( __( 'F j, Y' ) );
 
