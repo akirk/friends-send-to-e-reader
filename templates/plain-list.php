@@ -30,10 +30,8 @@ function selectNone() {
 </head>
 <body>
 	<form>
+		<span style="float: right"><a href="" onclick="return selectAll()">Select all</a> | <a href="" onclick="return selectNone()">Select none</a></span>
 		<button>Download</button>
-		<br />
-		<a href="" onclick="return selectAll()">Select all</a> | <a href="" onclick="return selectNone()">Select none</a><br />
-		<br />
 		<br />
 		<?php foreach ( $args['posts'] as $post ) : ?>
 				<input type="checkbox" name="<?php echo esc_attr( $args['inputname'] ); ?>[]" value="<?php echo esc_attr( $post->ID ); ?>" <?php checked( isset( $args['unsent'][ $post->ID ] ) ); ?> />

@@ -436,7 +436,7 @@ class Send_To_E_Reader {
 				'title'  => __( 'Send to E-Reader', 'friends' ),
 				'menu'   => array(
 					__( 'E-Readers', 'friends' ) => 'friends-send-to-e-reader',
-					__( 'Settings' )             => 'friends-send-to-e-reader-settings',
+					__( 'Settings' )             => 'friends-send-to-e-reader-settings', // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 				),
 			)
 		);
@@ -831,7 +831,7 @@ class Send_To_E_Reader {
 			exit;
 		}
 
-		$title = date_i18n( __( 'F j, Y' ) );
+		$title = date_i18n( __( 'F j, Y' ) ); // php:ignore WordPress.WP.I18n.MissingArgDomain
 
 		$author = __( 'Friend Post', 'friends' );
 		if ( $this->friends->frontend->author ) {
