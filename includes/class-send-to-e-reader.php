@@ -96,7 +96,7 @@ class Send_To_E_Reader {
 		if ( is_null( $this->ereaders ) ) {
 			$this->ereaders = array();
 			foreach ( get_option( self::EREADERS_OPTION, array() ) as $id => $ereader ) {
-				if ( get_class( $ereader ) === '__PHP_Incomplete_Class' ) {
+				if ( is_object( $ereader ) && get_class( $ereader ) === '__PHP_Incomplete_Class' ) {
 					// We need to update these to new class names.
 					$this->ereaders = null;
 					$alloptions = wp_load_alloptions();
