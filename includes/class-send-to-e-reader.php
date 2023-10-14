@@ -800,7 +800,14 @@ class Send_To_E_Reader {
 					)
 				)
 			);
+			$list = $this->download_request;
 			$posts = $query->get_posts();
+			usort(
+				$posts,
+				function( $a, $b ) use ( $list ) {
+					return array_search( $a->ID, $list ) - array_search( $b->ID, $list );
+				}
+			);
 		} elseif ( 'new' === $this->download_request ) {
 			$posts = $this->get_unsent_posts( $wp_query->query_vars );
 		} elseif ( 'all' === $this->download_request ) {
