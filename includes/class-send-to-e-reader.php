@@ -838,7 +838,7 @@ class Send_To_E_Reader {
 			exit;
 		}
 
-		$title = date_i18n( __( 'F j, Y' ) ); // php:ignore WordPress.WP.I18n.MissingArgDomain
+		$title = date_i18n( __( 'F j, Y' ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 
 		$author = __( 'Friend Post', 'friends' );
 		if ( $this->friends->frontend->author ) {
