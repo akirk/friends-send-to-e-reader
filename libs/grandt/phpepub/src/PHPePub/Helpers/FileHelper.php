@@ -73,7 +73,15 @@ class FileHelper {
      * @return bool|mixed|null|string
      */
     public static function getFileContents($source, $toTempFile = false) {
-        $isExternal = preg_match('#^(http|ftp)s?://#i', $source) == 1;
+        $isExternal = false;
+        $p = parse_url( $source );
+        if ( $p ) {
+            switch ( strtolower( $p['host'] ) ) {
+                case 'archive.today':
+                case 'archive.is':
+                    return false;
+            }
+        }
 
         if ($isExternal && FileHelper::getIsCurlInstalled()) {
             $ch = curl_init();
