@@ -445,8 +445,8 @@ class EPub {
 
             $xml = new DOMDocument('1.0', "utf-8");
             $xml->lookupPrefix("http://www.w3.org/1999/xhtml");
-            $xml->preserveWhiteSpace = false;
-            $xml->formatOutput = true;
+            $xml->preserveWhiteSpace = true;
+            $xml->formatOutput = false;
 
             $xml2Doc = new DOMDocument('1.0', "utf-8");
             $xml2Doc->lookupPrefix("http://www.w3.org/1999/xhtml");

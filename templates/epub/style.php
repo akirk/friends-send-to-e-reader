@@ -88,4 +88,14 @@ figcaption {
 code, pre {
 	overflow: auto;
 	overflow-wrap: break-word;
+	white-space: pre;
+	font-family: monospace;
+	padding: 10px;
+	margin: 1em 0;
 }
+
+pre p {
+	font-family: monospace;
+	margin: 0;
+}
+
