@@ -456,9 +456,36 @@ class Send_To_E_Reader {
 		$post_content = array();
 
 		add_filter( 'private_title_format', array( $this, 'private_title_format' ) );
-		foreach ( $posts as $post ) {
-			$content = '<!-- wp:heading {"level":4} -->' . PHP_EOL . '<h4><a href="' . esc_url( get_the_permalink( $post ) ) . '">';
 
+		$summary_posts = get_posts(
+			array(
+				'title'       => $reading_summary_title,
+				'number'      => 1,
+				'post_status' => 'draft',
+			)
+		);
+		$summary_post_content = '';
+		if ( ! empty( $summary_posts ) ) {
+			$summary_post_content = $summary_posts[0]->post_content;
+		}
+
+		foreach ( $posts as $post ) {
+			$permalink = '"' . esc_url( get_the_permalink( $post ) ) . '"';
+			if ( false !== strpos( $summary_post_content, $permalink ) ) {
+				continue;
+			}
+			$group = array(
+				'metadata' => array(
+					'name' => get_the_title( $post ),
+				),
+				'layout'   => array(
+					'type' => 'constrained',
+				),
+			);
+
+			$content = '<!-- wp:group ' . wp_json_encode( $group ) . ' -->' . PHP_EOL . '<div class="wp-block-group">';
+
+			$content .= '<!-- wp:heading {"level":4} -->' . PHP_EOL . '<h4><a href=' . $permalink . '>';
 			$content .= wp_kses_post( get_the_title( $post ) );
 			$content .= '</a></h4>' . PHP_EOL;
 			$content .= '<!-- /wp:heading -->';
@@ -469,16 +496,12 @@ class Send_To_E_Reader {
 			$content .= apply_filters( 'friends_send_to_ereader_reading_summary_paragraph_content', '', $post );
 			$content .= '</p>' . PHP_EOL;
 			$content .= '<!-- /wp:paragraph -->';
+			$content .= '</div>' . PHP_EOL;
+			$content .= '<!-- /wp:group -->';
 			$post_content[] = apply_filters( 'friends_send_to_e_reader_summary_entry', $content, $post );
 		}
 
-		$summary_posts = get_posts(
-			array(
-				'title'       => $reading_summary_title,
-				'number'      => 1,
-				'post_status' => 'draft',
-			)
-		);
+		remove_filter( 'private_title_format', array( $this, 'private_title_format' ) );
 
 		if ( empty( $summary_posts ) ) {
 			wp_insert_post(
