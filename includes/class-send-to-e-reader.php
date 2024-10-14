@@ -867,6 +867,8 @@ class Send_To_E_Reader {
 			update_post_meta( $post->ID, self::POST_META, time() );
 		}
 
+		$this->create_reading_summary( $posts, $this->reading_summary_title() );
+
 		wp_redirect( $result['url'] );
 		exit;
 	}
