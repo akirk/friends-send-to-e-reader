@@ -60,11 +60,15 @@ abstract class E_Reader {
 
 	protected function get_content( $format, \WP_Post $post ) {
 		ob_start();
+		$post_title = $post->post_title;
+		if ( ! $post_title ) {
+			$post_title = __( 'Untitled', 'friends' );
+		}
 		Friends::template_loader()->get_template_part(
 			$format . '/header',
 			null,
 			array(
-				'title'  => $post->post_title,
+				'title'  => $post_title,
 				'author' => $post->author_name,
 				'date'   => get_the_time( 'l, F j, Y', $post ),
 			)
