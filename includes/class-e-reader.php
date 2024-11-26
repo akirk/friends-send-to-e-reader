@@ -60,15 +60,11 @@ abstract class E_Reader {
 
 	protected function get_content( $format, \WP_Post $post ) {
 		ob_start();
-		$post_title = $post->post_title;
-		if ( ! $post_title ) {
-			$post_title = __( 'Untitled', 'friends' );
-		}
 		Friends::template_loader()->get_template_part(
 			$format . '/header',
 			null,
 			array(
-				'title'  => $post_title,
+				'title'  => $post->post_title,
 				'author' => $post->author_name,
 				'date'   => get_the_time( 'l, F j, Y', $post ),
 			)
@@ -147,7 +143,11 @@ abstract class E_Reader {
 
 		$book->addCSSFile( 'style.css', 'css', file_get_contents( Friends::template_loader()->get_template_part( 'epub/style', null, array(), false ) ) );
 
-		foreach ( $posts as $post ) {
+		foreach ( $posts as $count => $post ) {
+			if ( ! $post->post_title ) {
+				$post->post_title = get_the_time( 'F j, Y H:i:s', $post );
+			}
+
 			$content = $this->get_content( 'epub', $post );
 
 			$book->addChapter( $post->post_title, sanitize_title( substr( $this->strip_emojis( $post->post_author ), 0, 40 ) . ' - ' . substr( $post->post_title, 0, 100 ) ) . '.html', $content, false, \PHPePub\Core\EPub::EXTERNAL_REF_ADD, $dir );
