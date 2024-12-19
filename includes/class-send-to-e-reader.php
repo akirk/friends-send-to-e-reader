@@ -285,10 +285,19 @@ class Send_To_E_Reader {
 		return $paths;
 	}
 
-	public function get_unsent_posts( $query_vars ) {
+	public function get_query_vars() {
+		global $wp_query;
+		$query_vars = array_filter( $wp_query->query_vars );
+		if ( empty( $query_vars['post_type'] ) ) {
+			$query_vars['post_type'] = 'any';
+		}
+		return $query_vars;
+	}
+
+	public function get_unsent_posts() {
 		$query = new \WP_Query(
 			array_merge(
-				$query_vars,
+				$this->get_query_vars(),
 				array(
 					'nopaging'     => true,
 					'meta_key'     => self::POST_META,
@@ -296,6 +305,7 @@ class Send_To_E_Reader {
 				)
 			)
 		);
+
 		return $query->get_posts();
 	}
 
@@ -792,16 +802,18 @@ class Send_To_E_Reader {
 			return $template;
 		}
 
-		global $wp_query;
 		if ( 'list' === $this->download_request ) {
 			$unsent = array();
 			foreach ( $this->get_unsent_posts( $wp_query->query_vars ) as $post ) {
+				if ( in_array( get_post_format( $post ), array( 'video' ), true ) ) {
+					continue;
+				}
 				$unsent[ $post->ID ] = $post;
 			}
 
 			$query = new \WP_Query(
 				array_merge(
-					$wp_query->query_vars,
+					$this->get_query_vars(),
 					array(
 						'posts_per_page' => 50,
 					)
@@ -809,6 +821,9 @@ class Send_To_E_Reader {
 			);
 			$posts = array();
 			foreach ( $query->get_posts() as $post ) {
+				if ( in_array( get_post_format( $post ), array( 'video' ), true ) ) {
+					continue;
+				}
 				$posts[ $post->ID ] = $post;
 			}
 
@@ -829,7 +844,7 @@ class Send_To_E_Reader {
 		if ( is_array( $this->download_request ) ) {
 			$query = new \WP_Query(
 				array_merge(
-					$wp_query->query_vars,
+					$this->get_query_vars(),
 					array(
 						'post__in' => $this->download_request,
 					)
@@ -848,7 +863,7 @@ class Send_To_E_Reader {
 		} elseif ( 'all' === $this->download_request ) {
 			$query = new \WP_Query(
 				array_merge(
-					$wp_query->query_vars,
+					$this->get_query_vars(),
 					array(
 						'nopaging' => true,
 					)
@@ -858,7 +873,7 @@ class Send_To_E_Reader {
 		} elseif ( 'last' === $this->download_request ) {
 			$query = new \WP_Query(
 				array_merge(
-					$wp_query->query_vars,
+					$this->get_query_vars(),
 					array(
 						'posts_per_page' => 10,
 					)
