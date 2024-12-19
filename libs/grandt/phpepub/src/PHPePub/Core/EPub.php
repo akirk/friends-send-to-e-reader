@@ -822,7 +822,8 @@ class EPub {
             if (is_array($target)) {
                 $target[0]->parentNode->replaceChild($target[1], $target[0]);
             } else {
-                $target->parentNode->removeChild($target);
+                // instead of removing, replace with an empty span.
+                $target->parentNode->replaceChild(StringHelper::createDomFragment($xmlDoc, "<span></span>"), $target);
             }
         }
 
