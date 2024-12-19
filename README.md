@@ -17,11 +17,14 @@ This plugin is meant to be used with the [Friends plugin](https://github.com/aki
 
 ## Changelog
 
-### 0.8.3
-- Try harder to ensure the title is not empty ([#12])
+### 0.8.4
 - Allow creating books via bulk edit ([#13])
 - Fixed a bug where a non-existant image could cause the rest of the document to be a link
 - Enable the URL GET parameter on any page
+- One more fix for empty titles in posts
+
+### 0.8.3
+- Try harder to ensure the title is not empty ([#12])
 
 ### 0.8.2
 - Ensure the title is not empty ([#11])
