@@ -81,6 +81,7 @@ figure img, img.size-full {
 	height: auto !important;
 }
 figcaption {
+	display: block;
 	text-align: center;
 	font-size: .9rem;
 }
