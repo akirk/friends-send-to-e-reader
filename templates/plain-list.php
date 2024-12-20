@@ -64,7 +64,7 @@ function moveDown( element ) {
 		<?php foreach ( $args['posts'] as $post ) : ?>
 				<li><input type="checkbox" name="<?php echo esc_attr( $args['inputname'] ); ?>[]" value="<?php echo esc_attr( $post->ID ); ?>" <?php checked( isset( $args['unsent'][ $post->ID ] ) ); ?> />
 				<?php echo esc_html( get_the_title( $post ) ); ?><br/><small><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $post->post_content ) ) ); ?></small>
-				<small><br><?php echo esc_html( get_the_permalink( $post ) ); ?> | <a href="" onclick="return moveUp( this )">Move up</a> | <a href="" onclick="return moveDown( this )">Move down</a><br><br></small>
+				<small><br><a href="<?php echo esc_html( get_the_permalink( $post ) ); ?>"><?php echo esc_html( get_the_permalink( $post ) ); ?></a> | <a href="" onclick="return moveUp( this )">Move up</a> | <a href="" onclick="return moveDown( this )">Move down</a><br><br></small>
 				</li>
 		<?php endforeach; ?>
 		</ul>
