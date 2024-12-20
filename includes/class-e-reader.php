@@ -116,9 +116,9 @@ abstract class E_Reader {
 
 		foreach ( $posts as $post ) {
 			if ( ! $this->ebook_title ) {
-				$post_title = get_the_time( 'F j, Y H:i:s', $post );
+				$post_title = $post->post_title;
 				if ( empty( $post_title ) ) {
-					$post_title = get_the_excerpt( $post );
+					$post_title = get_the_time( 'F j, Y H:i:s', $post );
 				}
 				$this->ebook_title = $this->strip_emojis( $post_title );
 			}
