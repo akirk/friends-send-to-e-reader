@@ -68,6 +68,14 @@ class Send_To_E_Reader {
 		add_action( 'friends_author_header', array( $this, 'friends_author_header' ), 10, 2 );
 		add_filter( 'friends_friend_posts_query_viewable', array( $this, 'enable_download_via_url' ) );
 		add_filter( 'template_include', array( $this, 'download_via_url' ) );
+		add_action( 'admin_init', array( $this, 'admin_init' ) );
+	}
+	public function admin_init() {
+		foreach ( get_post_types( array( 'show_ui' => true ) ) as $_post_type ) {
+			add_filter( 'bulk_actions-edit-' . $_post_type, array( $this, 'bulk_actions' ) );
+			add_filter( 'handle_bulk_actions-edit-' . $_post_type, array( $this, 'handle_bulk_actions' ), 10, 3 );
+			add_filter( $_post_type. '_row_actions', array( $this, 'post_row_actions' ), 10, 2 );
+		}
 	}
 
 	public function register_ereader( $ereader_class ) {
@@ -922,4 +930,52 @@ class Send_To_E_Reader {
 		wp_redirect( $result['url'] );
 		exit;
 	}
+
+	public function bulk_actions( $actions ) {
+		$actions['send-to-e-reader'] = __( 'Send to E-Reader', 'friends' );
+		return $actions;
+	}
+
+	public function handle_bulk_actions( $redirect_to, $doaction, $post_ids ) {
+		if ( 'send-to-e-reader' !== $doaction ) {
+			return $redirect_to;
+		}
+
+		$ereaders = $this->get_active_ereaders();
+		$ereader = array_shift( $ereaders );
+
+		$posts = array_map( 'get_post', $post_ids );
+		$result = $ereader->send_posts( $posts, false, false );
+
+		if ( ! $result ) {
+			return $redirect_to;
+		}
+
+		foreach ( $posts as $post ) {
+			update_post_meta( $post->ID, self::POST_META, time() );
+		}
+
+		$this->create_reading_summary( $posts, $this->reading_summary_title() );
+
+		wp_redirect( $result['url'] );
+		exit;
+	}
+
+	public function post_row_actions( $actions, $post ) {
+		$actions['send-to-e-reader'] = sprintf(
+			'<a href="%s">%s</a>',
+			add_query_arg(
+				array(
+					'action' => 'send-to-e-reader',
+					'post[]'   => $post->ID,
+					'_wpnonce' => wp_create_nonce( 'bulk-posts' ),
+				),
+				'edit.php'
+			),
+			__( 'Send to E-Reader', 'friends' )
+		);
+		return $actions;
+	}
+
+
 }
