@@ -91,7 +91,7 @@ class E_Reader_Generic_Email extends E_Reader {
 		$friends = Friends::get_instance();
 		$friends->notifications->send_mail( $this->email, $this->ebook_title, $this->ebook_title, array(), array( $file ) );
 		unlink( $file );
-		return array( 'title' => $this->ebook_title, 'author' => $this->ebook_author );
+		return array( 'send-to-e-reader' => 'success', 'title' => $this->ebook_title, 'author' => $this->ebook_author );
 	}
 
 }

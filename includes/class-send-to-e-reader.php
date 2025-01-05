@@ -76,6 +76,7 @@ class Send_To_E_Reader {
 			add_filter( 'handle_bulk_actions-edit-' . $_post_type, array( $this, 'handle_bulk_actions' ), 10, 3 );
 			add_filter( $_post_type. '_row_actions', array( $this, 'post_row_actions' ), 10, 2 );
 		}
+		add_filter( 'admin_notices', array( $this, 'admin_notices' ) );
 	}
 
 	public function register_ereader( $ereader_class ) {
@@ -957,8 +958,12 @@ class Send_To_E_Reader {
 
 		$this->create_reading_summary( $posts, $this->reading_summary_title() );
 
-		wp_redirect( $result['url'] );
-		exit;
+		if ( isset( $result['url'] ) ) {
+			wp_safe_redirect( $result['url'] );
+			exit;
+		}
+
+		return add_query_arg( $result, $redirect_to );
 	}
 
 	public function post_row_actions( $actions, $post ) {
@@ -975,6 +980,18 @@ class Send_To_E_Reader {
 			__( 'Send to E-Reader', 'friends' )
 		);
 		return $actions;
+	}
+
+	public function admin_notices() {
+		if ( ! empty( $_GET['send-to-e-reader'] ) ) {
+			if ( 'success' === $_GET['send-to-e-reader'] ) {
+				?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( 'Posts sent to E-Reader.', 'friends' ); ?></p>
+				</div>
+				<?php
+			}
+		}
 	}
 
 
