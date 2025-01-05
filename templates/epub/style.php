@@ -80,6 +80,11 @@ figure img, img.size-full {
 	max-width: 100% !important;
 	height: auto !important;
 }
+
+figure {
+	display: block;
+	text-align: center;
+}
 figcaption {
 	display: block;
 	text-align: center;
