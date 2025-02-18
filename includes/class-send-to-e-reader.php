@@ -320,13 +320,13 @@ class Send_To_E_Reader {
 
 	public function entry_dropdown_menu() {
 		$divider = '<li class="divider ereader" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
-		$already_sent = get_post_meta( get_the_ID(), self::POST_META );
+		$already_sent = get_post_meta( get_the_ID(), self::POST_META, true );
 		if ( $already_sent ) {
 			$divider = '<li class="divider ereader" data-content="' . esc_attr(
 				sprintf(
 					// translators: %s is a date.
 					__( 'E-Reader: Sent on %s', 'friends' ),
-					date_i18n( __( 'M j' ) ) // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+					date_i18n( __( 'M j' ), $already_sent ) // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 				)
 			) . '"></li>';
 		}
