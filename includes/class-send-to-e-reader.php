@@ -303,10 +303,14 @@ class Send_To_E_Reader {
 		return $query_vars;
 	}
 
-	public function get_unsent_posts() {
+	public function get_unsent_posts( $query_vars = array() ) {
+		if ( empty( $query_vars ) ) {
+			global $wp_query;
+			$query_vars = $wp_query->query_vars;
+		}
 		$query = new \WP_Query(
 			array_merge(
-				$this->get_query_vars(),
+				$query_vars,
 				array(
 					'nopaging'     => true,
 					'meta_key'     => self::POST_META,
@@ -320,13 +324,13 @@ class Send_To_E_Reader {
 
 	public function entry_dropdown_menu() {
 		$divider = '<li class="divider ereader" data-content="' . esc_attr__( 'E-Reader', 'friends' ) . '"></li>';
-		$already_sent = get_post_meta( get_the_ID(), self::POST_META );
+		$already_sent = get_post_meta( get_the_ID(), self::POST_META, true );
 		if ( $already_sent ) {
 			$divider = '<li class="divider ereader" data-content="' . esc_attr(
 				sprintf(
 					// translators: %s is a date.
 					__( 'E-Reader: Sent on %s', 'friends' ),
-					date_i18n( __( 'M j' ) ) // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+					date_i18n( __( 'M j' ), $already_sent ) // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 				)
 			) . '"></li>';
 		}
@@ -766,14 +770,13 @@ class Send_To_E_Reader {
 	}
 
 	public function friends_author_header( User $friend_user, $args ) {
-		global $wp_query;
 		Friends::template_loader()->get_template_part(
 			'frontend/ereader/author-header',
 			null,
 			array_merge(
 				array(
 					'ereaders'     => $this->get_active_ereaders(),
-					'unsent_posts' => $this->get_unsent_posts( $wp_query->query_vars ),
+					'unsent_posts' => $this->get_unsent_posts(),
 					'friend'       => $friend_user,
 				),
 				$args
@@ -813,7 +816,7 @@ class Send_To_E_Reader {
 
 		if ( 'list' === $this->download_request ) {
 			$unsent = array();
-			foreach ( $this->get_unsent_posts( $wp_query->query_vars ) as $post ) {
+			foreach ( $this->get_unsent_posts() as $post ) {
 				if ( in_array( get_post_format( $post ), array( 'video' ), true ) ) {
 					continue;
 				}
@@ -868,7 +871,7 @@ class Send_To_E_Reader {
 				}
 			);
 		} elseif ( 'new' === $this->download_request ) {
-			$posts = $this->get_unsent_posts( $wp_query->query_vars );
+			$posts = $this->get_unsent_posts();
 		} elseif ( 'all' === $this->download_request ) {
 			$query = new \WP_Query(
 				array_merge(
