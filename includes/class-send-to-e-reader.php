@@ -1001,7 +1001,8 @@ class Send_To_E_Reader {
 		$ereaders = get_option( self::EREADERS_OPTION, array() );
 		if ( empty( $ereaders ) ) {
 			$ereaders = array();
-			$ereader = new E_Reader_Download( 'download-epub' );
+			require_once FRIENDS_SEND_TO_E_READER_PLUGIN_DIR . 'includes/class-e-reader-download.php';
+			$ereader = new E_Reader_Download( __( 'Download ePub', 'friends' ) );
 			$id = $ereader->get_id();
 			if ( $id ) {
 				$ereaders[ $id ] = $ereader;
