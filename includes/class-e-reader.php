@@ -132,10 +132,6 @@ abstract class E_Reader {
 		if ( count( $posts ) > 1 && ! $title ) {
 			// translators: %s is a post title. This is a title to be used when multiple posts are compiled to an ePub.
 			$this->ebook_title = sprintf( __( '%s & more', 'friends' ), $this->ebook_title );
-			if ( count( $authors ) === 1 ) {
-				// translators: %s is a post title. This is a title to be used when multiple posts are compiled to an ePub.
-				$this->ebook_title = sprintf( __( 'Latest posts by %s', 'friends' ), $authors[0] );
-			}
 		}
 
 		if ( ! $this->ebook_author ) {
