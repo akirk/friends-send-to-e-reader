@@ -74,7 +74,7 @@ class Send_To_E_Reader {
 		foreach ( get_post_types( array( 'show_ui' => true ) ) as $_post_type ) {
 			add_filter( 'bulk_actions-edit-' . $_post_type, array( $this, 'bulk_actions' ) );
 			add_filter( 'handle_bulk_actions-edit-' . $_post_type, array( $this, 'handle_bulk_actions' ), 10, 3 );
-			add_filter( $_post_type. '_row_actions', array( $this, 'post_row_actions' ), 10, 2 );
+			add_filter( $_post_type . '_row_actions', array( $this, 'post_row_actions' ), 10, 2 );
 		}
 		add_filter( 'admin_notices', array( $this, 'admin_notices' ) );
 	}
@@ -668,7 +668,7 @@ class Send_To_E_Reader {
 			}
 			uasort(
 				$ereaders,
-				function( $a, $b ) {
+				function ( $a, $b ) {
 					return strcmp( $a->get_name(), $b->get_name() );
 				}
 			);
@@ -866,7 +866,7 @@ class Send_To_E_Reader {
 			$posts = $query->get_posts();
 			usort(
 				$posts,
-				function( $a, $b ) use ( $list ) {
+				function ( $a, $b ) use ( $list ) {
 					return array_search( $a->ID, $list ) - array_search( $b->ID, $list );
 				}
 			);
@@ -974,7 +974,7 @@ class Send_To_E_Reader {
 			'<a href="%s">%s</a>',
 			add_query_arg(
 				array(
-					'action' => 'send-to-e-reader',
+					'action'   => 'send-to-e-reader',
 					'post[]'   => $post->ID,
 					'_wpnonce' => wp_create_nonce( 'bulk-posts' ),
 				),
@@ -997,5 +997,16 @@ class Send_To_E_Reader {
 		}
 	}
 
-
+	public static function activate_plugin() {
+		$ereaders = get_option( self::EREADERS_OPTION, array() );
+		if ( empty( $ereaders ) ) {
+			$ereaders = array();
+			$ereader = new E_Reader_Download( 'download-epub' );
+			$id = $ereader->get_id();
+			if ( $id ) {
+				$ereaders[ $id ] = $ereader;
+			}
+				update_option( self::EREADERS_OPTION, $ereaders );
+		}
+	}
 }

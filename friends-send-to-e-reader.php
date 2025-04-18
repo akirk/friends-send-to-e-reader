@@ -29,7 +29,7 @@ require_once __DIR__ . '/includes/class-e-reader.php';
 add_filter( 'friends_send_to_e_reader', '__return_true' );
 add_action(
 	'friends_loaded',
-	function( $friends ) {
+	function ( $friends ) {
 		$send_to_e_reader = new Friends\Send_To_E_Reader( $friends );
 
 		require_once __DIR__ . '/includes/class-e-reader-generic-email.php';
@@ -51,3 +51,5 @@ add_action(
 		$send_to_e_reader->register_ereader( 'Friends\E_Reader_Download' );
 	}
 );
+
+register_activation_hook( __FILE__, array( 'Friends\Send_To_E_Reader', 'activate_plugin' ) );
