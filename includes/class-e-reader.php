@@ -92,7 +92,7 @@ abstract class E_Reader {
 
 	protected function update_author_name( \WP_Post $post ) {
 		if ( ! isset( $post->author_name ) ) {
-			$author = new User( $post->post_author );
+			$author = User::get_post_author( $post );
 			$author_name = $author->display_name;
 			$override_author_name = apply_filters( 'friends_override_author_name', '', $author->display_name, $post->ID );
 			if ( $override_author_name && trim( str_replace( $override_author_name, '', $author_name ) ) === $author_name ) {
@@ -133,11 +133,8 @@ abstract class E_Reader {
 			// translators: %s is a post title. This is a title to be used when multiple posts are compiled to an ePub.
 			$this->ebook_title = sprintf( __( '%s & more', 'friends' ), $this->ebook_title );
 			if ( count( $authors ) === 1 ) {
-				$this->ebook_title = sprintf(
-					// translators: %s is a post title. This is a title to be used when multiple posts are compiled to an ePub.
-					__( 'Latest posts by %s', 'friends' ),
-					$authors[0]
-				);
+				// translators: %s is a post title. This is a title to be used when multiple posts are compiled to an ePub.
+				$this->ebook_title = sprintf( __( 'Latest posts by %s', 'friends' ), $authors[0] );
 			}
 		}
 
@@ -150,6 +147,7 @@ abstract class E_Reader {
 		$filename = sanitize_title( substr( $this->ebook_author, 0, 40 ) . ' - ' . substr( $this->ebook_title, 0, 100 ) );
 		$url = home_url( '?' . implode( '-', array_map( 'intval', array_column( $posts, 'ID' ) ) ) );
 		$book = new \PHPePub\Core\EPub();
+		$book->setGenerator( 'Friends Send to E-Reader (Version ' . FRIENDS_SEND_TO_E_READER_VERSION . ')' );
 
 		$book->setTitle( htmlspecialchars( $this->ebook_title ) );
 		$book->setIdentifier( $url, \PHPePub\Core\EPub::IDENTIFIER_URI );

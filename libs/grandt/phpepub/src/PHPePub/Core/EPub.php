@@ -132,7 +132,7 @@ class EPub {
     private $headerDateFormat = "D, d M Y H:i:s T";
     private $docRoot = null;
     private $bookRoot = 'OEBPS/';
-    private $EPubMark = true;
+    private $EPubMark = false;
     private $generator = '';
     private $log = null;
     private $htmlContentHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"\n    \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n<title></title>\n</head>\n<body>\n";
@@ -2103,7 +2103,7 @@ class EPub {
 
         return true;
     }
-    
+
     /**
      * Finalize and build final ePub structures.
      *
@@ -2160,7 +2160,7 @@ class EPub {
         $tocData .= ">\n";
 
 
-            
+
         // while (list($item, $descriptive) = each($this->referencesOrder)) {
         foreach ($this->referencesOrder as $item => $descriptive) {
             if ($item === "text") {
@@ -2233,7 +2233,7 @@ class EPub {
 
         return $this->ncx->finalizeEPub3($title, $cssFileName);
     }
-    
+
     /**
      * Return the finalized book.
      *
@@ -2286,7 +2286,7 @@ class EPub {
 
         return false;
     }
-    
+
     /**
      * Retrieve an array of file names currently added to the book.
      * $key is the filename used in the book
@@ -2321,7 +2321,7 @@ class EPub {
     function getSplitSize() {
         return $this->splitDefaultSize;
     }
-    
+
     /**
      * @return string
      */
