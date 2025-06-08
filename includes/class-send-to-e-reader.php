@@ -308,6 +308,12 @@ class Send_To_E_Reader {
 			global $wp_query;
 			$query_vars = $wp_query->query_vars;
 		}
+
+		// Prevent super cache from caching this page.
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true );
+		}
+
 		$query = new \WP_Query(
 			array_merge(
 				$query_vars,
