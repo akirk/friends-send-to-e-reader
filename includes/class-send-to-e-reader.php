@@ -845,6 +845,12 @@ class Send_To_E_Reader {
 				$posts[ $post->ID ] = $post;
 			}
 
+			if ( empty( $posts ) ) {
+				status_header( 404 );
+				echo 'No posts found.';
+				exit;
+			}
+
 			Friends::template_loader()->get_template_part(
 				'plain-list',
 				null,
